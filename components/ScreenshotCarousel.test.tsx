@@ -14,6 +14,13 @@ describe("ScreenshotCarousel", () => {
     expect(screen.getByRole("imagebutton", { name: "Screenshot 2 of 2" })).toBeOnTheScreen();
   });
 
+  it("shows a counter instead of dots when there are many screenshots", async () => {
+    const many = Array.from({ length: 12 }, (_, i) => `https://img/${i}.jpg`);
+    await renderWithTheme(<ScreenshotCarousel urls={many} />);
+
+    expect(screen.getByText("1 / 12")).toBeOnTheScreen();
+  });
+
   it("opens a full screen preview that can be closed", async () => {
     await renderCarousel();
 

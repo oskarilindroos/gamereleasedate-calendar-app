@@ -1,6 +1,7 @@
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import CustomDrawer from "./CustomDrawer";
 import { useTheme } from "styled-components/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerParamList } from "../../types/navigation";
 
@@ -13,6 +14,7 @@ const Drawer = createDrawerNavigator<DrawerParamList>();
 
 export default function DrawerNavigator() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Drawer.Navigator
@@ -21,7 +23,8 @@ export default function DrawerNavigator() {
       screenOptions={{
         headerShown: false,
         drawerStyle: {
-          width: 210,
+          // The drawer content is padded for the notch in landscape; keep the labels' room
+          width: 210 + insets.left,
         },
         drawerActiveTintColor: theme.colors.primary,
         drawerInactiveTintColor: theme.colors.secondary,

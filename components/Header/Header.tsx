@@ -1,5 +1,4 @@
 import { Pressable } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "styled-components/native";
 import * as Styled from "../styled/styles";
@@ -8,11 +7,10 @@ import * as NavigationService from "../../services/NavigationService";
 
 export default function Header() {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
 
   return (
     <Styled.HeaderContainer>
-      <Styled.HeaderContent style={{ marginTop: insets.top + 12 }}>
+      <Styled.HeaderContent>
         <Pressable
           onPress={() => NavigationService.toggleDrawer()}
           hitSlop={20}

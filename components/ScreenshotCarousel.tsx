@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Modal, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
+import { Modal, Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { Image } from "expo-image";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSharedValue } from "react-native-reanimated";
@@ -11,15 +11,21 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "styled-components/native";
 import * as Styled from "./styled/styles";
 
-const IMAGE_HEIGHT = 400;
+const MAX_HEIGHT = 400;
+// Leaves room for the game details on short (landscape) screens
+const MAX_SCREEN_SHARE = 0.45;
 // IGDB screenshot sizes are all cropped to 16:9 (https://api-docs.igdb.com/#images),
 // so the preview doesn't need to download an image to learn its size
 const SCREENSHOT_ASPECT_RATIO = 16 / 9;
+// More screenshots than this don't fit as dots on narrow screens; show a counter instead
+const MAX_DOTS = 10;
 // Pulling the preview down this far closes it
 const CLOSE_PULL_DISTANCE = 120;
 
 interface CarouselProps {
   urls: string[];
+  // Fill the parent's height instead of using a height of its own
+  fill?: boolean;
 }
 
 // Full screen, zoomable image viewer with a blurred copy of the current image as background
@@ -80,18 +86,21 @@ function ScreenshotPreview({
   );
 }
 
-export default function ScreenshotCarousel({ urls }: CarouselProps) {
+export default function ScreenshotCarousel({ urls, fill = false }: CarouselProps) {
   const theme = useTheme();
+  const window = useWindowDimensions();
+  const height = Math.min(MAX_HEIGHT, Math.round(window.height * MAX_SCREEN_SHARE));
   const progress = useSharedValue(0);
+  const [activeIndex, setActiveIndex] = useState(0);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
 
   return (
     <View
-      style={{
-        height: IMAGE_HEIGHT,
-        borderBottomWidth: 2,
-        borderBottomColor: theme.colors.divider,
-      }}
+      style={
+        fill
+          ? styles.carousel
+          : { height, borderBottomWidth: 2, borderBottomColor: theme.colors.divider }
+      }
       testID="screenshot-carousel"
     >
       <Carousel
@@ -99,6 +108,7 @@ export default function ScreenshotCarousel({ urls }: CarouselProps) {
         keyExtractor={(url) => url}
         style={styles.carousel}
         progress={progress}
+        onSnapToItem={setActiveIndex}
         // Only take over clearly horizontal swipes so the details can still scroll vertically
         onConfigurePanGesture={(gesture) => {
           gesture.activeOffsetX([-10, 10]);
@@ -114,18 +124,24 @@ export default function ScreenshotCarousel({ urls }: CarouselProps) {
           </Pressable>
         )}
       />
-      <Pagination
-        count={urls.length}
-        progress={progress}
-        containerStyle={styles.pagination}
-        dotStyle={{
-          width: 10,
-          height: 10,
-          borderRadius: 5,
-          backgroundColor: theme.colors.secondary,
-        }}
-        activeDotStyle={{ width: 20, height: 5, backgroundColor: theme.colors.primary }}
-      />
+      {urls.length > MAX_DOTS ? (
+        <View style={styles.counter} pointerEvents="none">
+          <Text style={styles.counterText}>{`${activeIndex + 1} / ${urls.length}`}</Text>
+        </View>
+      ) : (
+        <Pagination
+          count={urls.length}
+          progress={progress}
+          containerStyle={styles.pagination}
+          dotStyle={{
+            width: 10,
+            height: 10,
+            borderRadius: 5,
+            backgroundColor: theme.colors.secondary,
+          }}
+          activeDotStyle={{ width: 20, height: 5, backgroundColor: theme.colors.primary }}
+        />
+      )}
       {previewIndex !== null && (
         <ScreenshotPreview
           urls={urls}
@@ -147,5 +163,19 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     alignItems: "center",
     gap: 10,
+  },
+  counter: {
+    position: "absolute",
+    bottom: 15,
+    alignSelf: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  counterText: {
+    fontFamily: "MontserratSemiBold",
+    fontSize: 12,
+    color: "white",
   },
 });

@@ -1,7 +1,9 @@
 import { styled } from "styled-components/native";
 import { Image } from "expo-image";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-export const Wrapper = styled.View`
+// Keeps content clear of the notch / Dynamic Island in landscape
+export const Wrapper = styled(SafeAreaView).attrs({ edges: ["left", "right"] })`
   background-color: ${({ theme }) => theme.colors.background};
   width: 100%;
   height: 100%;
@@ -24,14 +26,16 @@ export const Title = styled.Text`
   color: ${({ theme }) => theme.colors.primary};
 `;
 
-export const HeaderContainer = styled.View`
+export const HeaderContainer = styled(SafeAreaView).attrs({
+  edges: ["top", "left", "right"],
+})`
   background-color: ${({ theme }) => theme.colors.headerBackground};
   border-bottom-width: 2px;
   border-bottom-color: ${({ theme }) => theme.colors.divider};
 `;
 
-// margin-top is set from the safe area insets in Header
 export const HeaderContent = styled.View`
+  margin-top: 12px;
   margin-bottom: 10px;
   width: 90%;
   margin-left: auto;

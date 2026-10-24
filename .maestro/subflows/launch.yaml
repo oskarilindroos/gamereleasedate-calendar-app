@@ -8,6 +8,18 @@ appId: com.misnu.GameReleaseCalendar
 # skipping the dev menu onboarding sheet, the floating dev tools button and the dev
 # menu that otherwise opens at launch
 - openLink: exp+gamereleasecalendar://?__expo_url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&__expo_disable_onboarding=1&__expo_disable_auto_launch=1
+# iOS asks for confirmation the first time a link opens the app on a device
+- runFlow:
+    when:
+      visible: "Open in .*"
+    commands:
+      - tapOn: "Open"
+# iOS asks for confirmation the first time a link opens the app on a device
+- runFlow:
+    when:
+      visible: "Open in .*"
+    commands:
+      - tapOn: "Open"
 - runFlow:
     when:
       visible: "Continue"
