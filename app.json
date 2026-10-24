@@ -5,34 +5,45 @@
     "version": "1.0.0",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "updates": {
-      "fallbackToCacheTimeout": 0
-    },
-    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.misnu.GameReleaseCalendar"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "permissions": ["READ_CALENDAR", "WRITE_CALENDAR"],
+      "permissions": [
+        "READ_CALENDAR",
+        "WRITE_CALENDAR"
+      ],
       "package": "com.misnu.GameReleaseCalendar"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
         "projectId": "fd6598bb-8840-4429-b688-2846a35f064b"
       }
     },
-    "plugins": ["expo-font", "expo-calendar"]
+    "plugins": [
+      "expo-font",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Allow $(PRODUCT_NAME) to add game release dates to your calendar."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      "expo-status-bar",
+      "expo-asset"
+    ]
   }
 }

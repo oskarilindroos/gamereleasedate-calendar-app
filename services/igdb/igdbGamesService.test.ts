@@ -1,0 +1,155 @@
+import {
+  createMockFetch,
+  MOCK_CLIENT_ID,
+  MOCK_CLIENT_SECRET,
+} from "../../mock-igdb/igdbMock.ts";
+import { createIgdbGamesService } from "./igdbGamesService";
+import { createTwitchTokenProvider, TokenProvider } from "./twitchTokenProvider";
+
+const NOW = new Date(Date.UTC(2026, 9, 24, 12));
+const API_URL = "https://api.example.com/v4";
+const IMAGE_URL = "https://images.example.com";
+
+// Real service + token provider, talking to the mock IGDB API
+const createService = (fetchFn = createMockFetch(() => NOW)) =>
+  createIgdbGamesService({
+    apiURL: API_URL,
+    imageURL: IMAGE_URL,
+    clientId: MOCK_CLIENT_ID,
+    tokenProvider: createTwitchTokenProvider({
+      tokenURL: "https://id.example.com/oauth2/token",
+      clientId: MOCK_CLIENT_ID,
+      clientSecret: MOCK_CLIENT_SECRET,
+      fetchFn,
+    }),
+    fetchFn,
+    now: () => NOW,
+  });
+
+describe("igdbGamesService (against the mock IGDB API)", () => {
+  it("returns games releasing in the next 30 days, soonest first", async () => {
+    const games = await createService().getGamesReleasingSoon();
+
+    expect(games.map((game) => game.name)).toEqual([
+      "Stellar Frontier",
+      "Neon Drift 2",
+      "Hollow Crown",
+      "Iron Harvest Tactics",
+      "Moonlit Bakery",
+      "Shadow Protocol",
+    ]);
+  });
+
+  it("excludes editions and adult games", async () => {
+    const names = (await createService().getGamesReleasingSoon()).map(
+      (game) => game.name
+    );
+
+    expect(names).not.toContain("Shadow Protocol: Deluxe Edition");
+    expect(names).not.toContain("Velvet Nights");
+  });
+
+  it("searches all upcoming games by name, case-insensitively", async () => {
+    const games = await createService().searchUpcomingGames("STELLAR");
+
+    expect(games.map((game) => game.name)).toEqual([
+      "Stellar Frontier",
+      "Stellar Frontier: Echoes",
+    ]);
+  });
+
+  it("doesn't return games that were already released", async () => {
+    expect(await createService().searchUpcomingGames("Retro Kart")).toEqual([]);
+  });
+
+  it("maps the response to app games", async () => {
+    const [game] = await createService().searchUpcomingGames("Stellar Frontier");
+
+    expect(game).toEqual({
+      id: 1001,
+      name: "Stellar Frontier",
+      summary: expect.stringContaining("Chart unknown star systems"),
+      coverURL: `${IMAGE_URL}/t_cover_big/mockcover1001.png`,
+      screenshotURLs: [
+        `${IMAGE_URL}/t_screenshot_med_2x/mockshot1001a.jpg`,
+        `${IMAGE_URL}/t_screenshot_med_2x/mockshot1001b.jpg`,
+        `${IMAGE_URL}/t_screenshot_med_2x/mockshot1001c.jpg`,
+      ],
+      platforms: ["PC", "PS5", "XSX"],
+      releaseDate: new Date(2026, 9, 27),
+    });
+  });
+
+  it("sends the IGDB auth headers", async () => {
+    const fetchFn = jest.fn(createMockFetch(() => NOW));
+    await createService(fetchFn).getGamesReleasingSoon();
+
+    expect(fetchFn).toHaveBeenLastCalledWith(
+      `${API_URL}/games`,
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          "Client-ID": MOCK_CLIENT_ID,
+          Authorization: "Bearer mock-access-token",
+        }),
+      })
+    );
+  });
+});
+
+describe("igdbGamesService error handling", () => {
+  const response = (status: number, body: unknown = []) =>
+    ({ ok: status < 300, status, json: async () => body }) as Response;
+
+  const tokenProvider = (): jest.Mocked<TokenProvider> => ({
+    getToken: jest.fn().mockResolvedValue("token"),
+    invalidate: jest.fn(),
+  });
+
+  const createWith = (fetchFn: jest.Mock, provider = tokenProvider()) =>
+    createIgdbGamesService({
+      apiURL: API_URL,
+      imageURL: IMAGE_URL,
+      clientId: "id",
+      tokenProvider: provider,
+      fetchFn,
+      now: () => NOW,
+    });
+
+  it("refreshes the token and retries once on 401", async () => {
+    const provider = tokenProvider();
+    const fetchFn = jest
+      .fn()
+      .mockResolvedValueOnce(response(401))
+      .mockResolvedValueOnce(response(200, []));
+
+    await expect(createWith(fetchFn, provider).getGamesReleasingSoon()).resolves.toEqual([]);
+    expect(provider.invalidate).toHaveBeenCalledTimes(1);
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+  });
+
+  it("throws an ApiError on other failures", async () => {
+    const fetchFn = jest.fn().mockResolvedValue(response(429));
+
+    await expect(createWith(fetchFn).searchUpcomingGames("x")).rejects.toMatchObject({
+      name: "ApiError",
+      status: 429,
+    });
+  });
+
+  it("skips games without a release date", async () => {
+    const fetchFn = jest
+      .fn()
+      .mockResolvedValue(response(200, [{ id: 1, name: "No date" }]));
+
+    await expect(createWith(fetchFn).searchUpcomingGames("x")).resolves.toEqual([]);
+  });
+
+  it("passes the abort signal to fetch", async () => {
+    const fetchFn = jest.fn().mockResolvedValue(response(200, []));
+    const controller = new AbortController();
+
+    await createWith(fetchFn).getGamesReleasingSoon(controller.signal);
+    expect(fetchFn.mock.calls[0][1].signal).toBe(controller.signal);
+  });
+});

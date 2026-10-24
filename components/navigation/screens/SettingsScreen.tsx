@@ -1,21 +1,12 @@
 import { Switch } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useState } from "react";
 import { useTheme } from "styled-components/native";
 import * as Styled from "../../styled/styles";
-import { darkTheme, lightTheme } from "../../styled/themes";
-import { ThemeStateProps } from "../../../types/styled.d";
+import { useThemeMode } from "../../../context/ThemeModeContext";
 
-export default function SettingsScreen({ setTheme }: ThemeStateProps) {
+export default function SettingsScreen() {
   const theme = useTheme();
-  const [isDarkThemeEnabled, setIsDarkThemeEnabled] = useState(
-    theme.name === "dark-theme" ? true : false
-  );
-
-  const toggleTheme = (toggled: boolean) => {
-    setIsDarkThemeEnabled(toggled);
-    isDarkThemeEnabled ? setTheme(lightTheme) : setTheme(darkTheme);
-  };
+  const { isDarkTheme, setDarkTheme } = useThemeMode();
 
   return (
     <Styled.Wrapper>
@@ -23,7 +14,7 @@ export default function SettingsScreen({ setTheme }: ThemeStateProps) {
         <Styled.Title>Settings</Styled.Title>
         <Styled.FlexRow>
           <Ionicons
-            name={isDarkThemeEnabled ? "moon" : "sunny"}
+            name={isDarkTheme ? "moon" : "sunny"}
             size={32}
             color={theme.colors.primary}
           />
@@ -31,12 +22,12 @@ export default function SettingsScreen({ setTheme }: ThemeStateProps) {
             Dark Mode
           </Styled.Paragraph>
           <Switch
+            testID="dark-mode-switch"
+            accessibilityLabel="Dark Mode"
             thumbColor={theme.colors.primary}
             style={{ marginLeft: "auto" }}
-            onValueChange={(value) => {
-              toggleTheme(value);
-            }}
-            value={isDarkThemeEnabled}
+            onValueChange={setDarkTheme}
+            value={isDarkTheme}
           />
         </Styled.FlexRow>
         <Styled.Divider />

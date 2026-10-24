@@ -1,56 +1,40 @@
-import { useEffect, useState } from "react";
-import * as Styled from "../../styled/styles";
+import { useCallback, useState } from "react";
+import { FlatList, useWindowDimensions } from "react-native";
+import { DrawerScreenProps } from "@react-navigation/drawer";
 import { useTheme } from "styled-components/native";
+import * as Styled from "../../styled/styles";
 import useGames from "../../../hooks/useGames";
 import GameCard from "../../GameCard";
-import { FlatList, useWindowDimensions } from "react-native";
-import { Game } from "../../../types/games.d";
+import GameCardModal from "../../GameCardModal";
+import { Game } from "../../../types/games";
+import { DrawerParamList } from "../../../types/navigation";
+import { calcNumColumns } from "../../../utils/layout";
 
-const HomeScreen = ({ route }: { route: any }) => {
+// ContentContainer is 90% of the window width
+const CONTENT_WIDTH_RATIO = 0.9;
+
+type Props = DrawerScreenProps<DrawerParamList, "Home">;
+
+const HomeScreen = ({ route }: Props) => {
   const theme = useTheme();
+  const searchPhrase = route.params?.searchPhrase;
+  const { games, loading, error } = useGames(searchPhrase);
 
-  const [searchPhrase, setSearchPhrase] = useState("");
-  const {
-    games,
-    loading,
-    error,
-    fetchUpcomingGamesByName,
-    accessTokenFetched,
-    fetchGamesReleasingNextMonth,
-  } = useGames();
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
-  const minCols = 2;
-  const imageWidth = 150;
-  const imageMargin = 10;
+  const openGame = useCallback((game: Game) => {
+    setSelectedGame(game);
+    setModalVisible(true);
+  }, []);
 
-  const renderItem = ({ item }: { item: Game }) => <GameCard game={item} />;
+  const renderItem = useCallback(
+    ({ item }: { item: Game }) => <GameCard game={item} onPress={openGame} />,
+    [openGame]
+  );
 
-  const calcNumColumns = (width: number) => {
-    const cols = width / imageWidth;
-    const colsFloor = Math.floor(cols) > minCols ? Math.floor(cols) : minCols;
-    const colsMinusMargin = cols - 2 * colsFloor * imageMargin;
-    if (colsMinusMargin < colsFloor && colsFloor > minCols)
-      return colsFloor - 1;
-    else return colsFloor;
-  };
   const { width } = useWindowDimensions();
-  const [numColumns, setNumColumns] = useState(calcNumColumns(width));
-
-  useEffect(() => {
-    setNumColumns(calcNumColumns(width));
-  }, [width]);
-
-  useEffect(() => {
-    if (accessTokenFetched) {
-      if (route.params) {
-        fetchUpcomingGamesByName(route.params);
-        console.log("Fetching games by name");
-      } else {
-        fetchGamesReleasingNextMonth();
-        console.log("Fetching games releasing next month");
-      }
-    }
-  }, [route.params, accessTokenFetched]);
+  const numColumns = calcNumColumns(width * CONTENT_WIDTH_RATIO);
 
   return (
     <Styled.Wrapper>
@@ -65,6 +49,7 @@ const HomeScreen = ({ route }: { route: any }) => {
           key={numColumns}
           numColumns={numColumns}
           data={games}
+          keyExtractor={(game) => String(game.id)}
           renderItem={renderItem}
           initialNumToRender={10}
           ListHeaderComponentStyle={{
@@ -84,15 +69,27 @@ const HomeScreen = ({ route }: { route: any }) => {
                   : "Games releasing soon"}
               </Styled.Title>
               {games.length === 0 && !loading && (
-                <Styled.Paragraph>No results {error}</Styled.Paragraph>
+                <Styled.Paragraph>
+                  {error ? `No results. ${error}` : "No results"}
+                </Styled.Paragraph>
               )}
             </>
           }
         />
         {loading && (
-          <Styled.LoadingIcon size={"large"} color={theme.colors.primary} />
+          <Styled.LoadingIcon
+            testID="loading-indicator"
+            size={"large"}
+            color={theme.colors.primary}
+          />
         )}
       </Styled.ContentContainer>
+      <GameCardModal
+        game={selectedGame}
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onHidden={() => setSelectedGame(null)}
+      />
     </Styled.Wrapper>
   );
 };
