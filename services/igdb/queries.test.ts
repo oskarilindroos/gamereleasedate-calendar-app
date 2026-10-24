@@ -18,6 +18,7 @@ describe("searchUpcomingGamesQuery", () => {
     expect(query).toContain("first_release_date > 1000;");
     expect(query).toContain('themes.slug != "erotic"');
     expect(query).toContain("version_parent = null");
+    expect(query).toContain("game_type != (1,2,13)");
     expect(query).toContain("sort first_release_date asc;");
     expect(query).toContain("limit 200;");
   });
@@ -33,6 +34,7 @@ describe("gamesReleasingBetweenQuery", () => {
     const query = gamesReleasingBetweenQuery(100, 200);
 
     expect(query).toContain("first_release_date > 100 & first_release_date < 200;");
+    expect(query).toContain("game_type != (1,2,13)");
     expect(query).toContain("limit 400;");
   });
 });

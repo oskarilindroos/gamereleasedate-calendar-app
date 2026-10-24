@@ -3,8 +3,20 @@
 const GAME_FIELDS =
   "fields name, id, cover.image_id, first_release_date, summary, screenshots.image_id, platforms.abbreviation;";
 
-// Exclude adult content and alternative versions (e.g. editions) of the same game
-const BASE_FILTER = `themes.slug != "erotic" & version_parent = null`;
+// Game types that are add-ons to another game rather than games of their own.
+// IDs from the IGDB game_types endpoint: https://api-docs.igdb.com/#game-type
+export const EXCLUDED_GAME_TYPES = {
+  dlcAddon: 1,
+  expansion: 2,
+  pack: 13,
+} as const;
+
+// Exclude adult content, alternative versions (e.g. editions) of the same game and DLC
+const BASE_FILTER = [
+  `themes.slug != "erotic"`,
+  "version_parent = null",
+  `game_type != (${Object.values(EXCLUDED_GAME_TYPES).join(",")})`,
+].join(" & ");
 
 // Escape user input so it can't break out of a quoted Apicalypse string
 export const escapeQueryString = (value: string): string =>

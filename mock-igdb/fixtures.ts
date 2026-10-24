@@ -9,6 +9,8 @@ export interface MockGameFixture {
   coverImageId?: string;
   screenshotImageIds?: string[];
   platforms?: (string | null)[];
+  // IGDB game_types id, 0 = main game (default)
+  gameType?: number;
   // Filtered out by the app's queries (alternative edition / adult content)
   versionParent?: number;
   themeSlugs?: string[];
@@ -84,6 +86,40 @@ export const mockGames: MockGameFixture[] = [
     coverImageId: "mockcover1008",
     platforms: ["PC"],
     themeSlugs: ["erotic"],
+  },
+  {
+    id: 1012,
+    name: "Hollow Crown: Abyssal Tides",
+    releaseInDays: 18,
+    summary: "DLC adding a new underwater region.",
+    coverImageId: "mockcover1012",
+    platforms: ["PC", "PS5"],
+    gameType: 1, // dlc_addon
+  },
+  {
+    id: 1013,
+    name: "Stellar Frontier: Rift Expansion",
+    releaseInDays: 25,
+    coverImageId: "mockcover1013",
+    platforms: ["PC"],
+    gameType: 2, // expansion
+  },
+  {
+    id: 1014,
+    name: "Neon Drift 2: Season Pass Pack",
+    releaseInDays: 6,
+    coverImageId: "mockcover1014",
+    platforms: ["PC"],
+    gameType: 13, // pack
+  },
+  {
+    id: 1015,
+    name: "Moonlit Bakery: Night Shift",
+    releaseInDays: 28,
+    summary: "A standalone expansion: playable without the original game.",
+    coverImageId: "mockcover1015",
+    platforms: ["PC", "Switch 2"],
+    gameType: 4, // standalone_expansion, kept
   },
   {
     id: 1009,

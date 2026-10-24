@@ -68,12 +68,17 @@ export const queryMockGames = (query: string, now: Date = new Date()) => {
   const limit = Number(/limit (\d+);/.exec(query)?.[1] ?? 10);
   const excludeVersions = where.includes("version_parent = null");
   const excludedTheme = /themes\.slug != "(\w+)"/.exec(where)?.[1];
+  const excludedGameTypes = (/game_type != \(([\d,\s]+)\)/.exec(where)?.[1] ?? "")
+    .split(",")
+    .filter(Boolean)
+    .map(Number);
 
   return mockGames
     .filter((game) => !(excludeVersions && game.versionParent))
     .filter(
       (game) => !(excludedTheme && game.themeSlugs?.includes(excludedTheme))
     )
+    .filter((game) => !excludedGameTypes.includes(game.gameType ?? 0))
     .map((game) => toApiGame(game, now))
     .filter(
       (game) =>

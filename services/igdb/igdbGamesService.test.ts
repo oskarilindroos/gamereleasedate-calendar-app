@@ -37,7 +37,19 @@ describe("igdbGamesService (against the mock IGDB API)", () => {
       "Iron Harvest Tactics",
       "Moonlit Bakery",
       "Shadow Protocol",
+      "Moonlit Bakery: Night Shift",
     ]);
+  });
+
+  it("excludes DLC, expansions and DLC packs but keeps standalone expansions", async () => {
+    const names = (await createService().getGamesReleasingSoon()).map(
+      (game) => game.name
+    );
+
+    expect(names).not.toContain("Hollow Crown: Abyssal Tides");
+    expect(names).not.toContain("Stellar Frontier: Rift Expansion");
+    expect(names).not.toContain("Neon Drift 2: Season Pass Pack");
+    expect(names).toContain("Moonlit Bakery: Night Shift");
   });
 
   it("excludes editions and adult games", async () => {

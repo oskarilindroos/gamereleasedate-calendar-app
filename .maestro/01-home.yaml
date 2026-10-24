@@ -8,4 +8,6 @@ name: Shows games releasing soon
 - assertNotVisible: "Shadow Protocol: Deluxe Edition"
 - assertNotVisible: "Velvet Nights"
 - assertNotVisible: "Kingdom of Ash"
+# DLC is excluded
+- assertNotVisible: "Neon Drift 2: Season Pass Pack"
 - takeScreenshot: 01-home
