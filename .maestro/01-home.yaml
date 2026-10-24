@@ -1,0 +1,11 @@
+appId: com.misnu.GameReleaseCalendar
+name: Shows games releasing soon
+---
+- runFlow: subflows/launch.yaml
+- assertVisible: "Stellar Frontier"
+- assertVisible: "Neon Drift 2"
+# Editions, adult games and games releasing later than 30 days are excluded
+- assertNotVisible: "Shadow Protocol: Deluxe Edition"
+- assertNotVisible: "Velvet Nights"
+- assertNotVisible: "Kingdom of Ash"
+- takeScreenshot: 01-home

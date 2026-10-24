@@ -23,8 +23,12 @@ const chunk = (type: string, data: Buffer) => {
   return Buffer.concat([length, typeAndData, crc]);
 };
 
+// FNV-1a: similar ids (e.g. "mockcover1001" / "mockcover1002") still get distinct colors
 const hashString = (value: string) =>
-  [...value].reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) >>> 0, 7);
+  [...value].reduce(
+    (hash, char) => Math.imul(hash ^ char.charCodeAt(0), 16777619) >>> 0,
+    2166136261
+  );
 
 const hslToRgb = (h: number, s: number, l: number): [number, number, number] => {
   const a = s * Math.min(l, 1 - l);

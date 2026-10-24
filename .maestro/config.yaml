@@ -1,0 +1,6 @@
+# Maestro end-to-end tests. They expect:
+#   1. the mock IGDB API running:            npm run mock-api
+#   2. a development build connected to Metro started with `npm run start:mock`
+# See README for details.
+flows:
+  - "*.yaml"

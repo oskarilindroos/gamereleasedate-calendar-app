@@ -8,6 +8,7 @@ import {
   useWindowDimensions,
   ViewStyle,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ANIMATION_DURATION = 300;
 const BACKDROP_OPACITY = 0.5;
@@ -31,6 +32,8 @@ export default function SlideUpModal({
   children,
 }: SlideUpModalProps) {
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const margin = width * 0.05;
   // Keep the native modal mounted until the hide animation has finished
   const [mounted, setMounted] = useState(visible);
   if (visible && !mounted) {
@@ -87,7 +90,9 @@ export default function SlideUpModal({
         style={[
           styles.content,
           {
-            marginVertical: width * 0.05,
+            // Keep clear of the notch / Dynamic Island and the home indicator
+            marginTop: Math.max(margin, insets.top),
+            marginBottom: Math.max(margin, insets.bottom),
             transform: [
               {
                 translateY: progress.interpolate({

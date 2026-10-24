@@ -1,0 +1,22 @@
+appId: com.misnu.GameReleaseCalendar
+name: Searches games
+---
+- runFlow: subflows/launch.yaml
+- tapOn:
+    id: "search-input"
+- inputText: "stellar"
+- pressKey: Enter
+- extendedWaitUntil:
+    visible: "Search results for 'stellar'"
+    timeout: 10000
+- assertVisible: "Stellar Frontier: Echoes"
+- assertNotVisible: "Neon Drift 2"
+- takeScreenshot: 02-search
+# Searching for nothing returns to the default list
+- tapOn: "Clear search"
+- tapOn:
+    id: "search-input"
+- pressKey: Enter
+- extendedWaitUntil:
+    visible: "Games releasing soon"
+    timeout: 10000

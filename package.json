@@ -12,8 +12,7 @@
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "lint": "expo lint",
-    "e2e:ios": "maestro test --platform ios .maestro",
-    "e2e:android": "maestro test --platform android .maestro"
+    "e2e": "maestro test --platform ios .maestro"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",

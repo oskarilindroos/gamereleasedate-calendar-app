@@ -40,7 +40,6 @@ yarn-error.*
 
 # test output
 /coverage
-/.maestro/screenshots
 
 .vscode
 .idea

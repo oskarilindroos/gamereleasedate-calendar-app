@@ -1,0 +1,17 @@
+appId: com.misnu.GameReleaseCalendar
+---
+- launchApp:
+    clearState: true
+    permissions:
+      calendar: allow
+# Development builds open the Expo dev launcher; connect it to the local Metro server,
+# skipping the dev menu onboarding sheet and floating dev tools button
+- openLink: exp+gamereleasecalendar://?__expo_url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&__expo_disable_onboarding=1
+- runFlow:
+    when:
+      visible: "Continue"
+    commands:
+      - tapOn: "Continue"
+- extendedWaitUntil:
+    visible: "Games releasing soon"
+    timeout: 60000
