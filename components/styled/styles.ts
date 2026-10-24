@@ -160,13 +160,30 @@ export const GameModalContentContainer = styled.View`
 
 export const GameModalContentRow = styled.View`
   padding: 20px;
-  min-height: 300px;
 `;
 
-export const AddToCalendarButton = styled.Pressable`
-  margin-top: auto;
-  margin-bottom: auto;
-  align-self: center;
+// Stays below the scrolling details so the action is always visible
+export const GameModalFooter = styled.View`
+  padding: 15px 20px 20px;
+  border-top-width: 2px;
+  border-top-color: ${({ theme }) => theme.colors.divider};
+  background-color: ${({ theme }) => theme.colors.background};
+`;
+
+export const PrimaryButton = styled.TouchableOpacity`
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 50px;
+  border-radius: ${({ theme }) => theme.borderRadius}px;
+  background-color: ${({ theme }) => theme.colors.primary};
+`;
+
+export const PrimaryButtonText = styled.Text`
+  font-family: MontserratSemiBold;
+  font-size: ${({ theme }) => theme.fontSizes.l}px;
+  color: ${({ theme }) => theme.colors.background};
 `;
 
 export const DrawerContainer = styled.View`

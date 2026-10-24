@@ -6,7 +6,7 @@ import { queryKeys } from "../services/query/queryClient";
 const useCalendar = () => {
   const queryClient = useQueryClient();
 
-  const { mutate: addEvent } = useMutation({
+  const { mutate: addEvent, isPending: adding } = useMutation({
     mutationFn: addGameToCalendar,
     onSuccess: (result) => {
       if (result === "added") {
@@ -24,7 +24,7 @@ const useCalendar = () => {
     },
   });
 
-  return { addEvent };
+  return { addEvent, adding };
 };
 
 export default useCalendar;

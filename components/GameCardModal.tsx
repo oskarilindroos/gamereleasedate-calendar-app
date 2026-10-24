@@ -1,4 +1,4 @@
-import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "styled-components/native";
 import useCalendar from "../hooks/useCalendar";
 import ScreenshotCarousel from "./ScreenshotCarousel";
@@ -22,7 +22,7 @@ export default function GameCardModal({
   onHidden,
 }: ModalProps) {
   const theme = useTheme();
-  const { addEvent } = useCalendar();
+  const { addEvent, adding } = useCalendar();
 
   return (
     <SlideUpModal
@@ -64,22 +64,26 @@ export default function GameCardModal({
                   </Styled.GameSummaryContainer>
                 )}
               </Styled.GameModalContentRow>
-              <Styled.GameModalContentRow>
-                <Styled.AddToCalendarButton
-                  onPress={() => addEvent(game)}
-                  accessibilityRole="button"
-                  accessibilityLabel="Add to calendar"
-                  testID="add-to-calendar"
-                >
-                  <FontAwesome
-                    name="calendar-plus-o"
-                    size={120}
-                    color={theme.colors.primary}
-                  />
-                </Styled.AddToCalendarButton>
-              </Styled.GameModalContentRow>
             </Styled.GameModalContentContainer>
           </Styled.GameModalContainer>
+          <Styled.GameModalFooter>
+            <Styled.PrimaryButton
+              onPress={() => addEvent(game)}
+              disabled={adding}
+              style={{ opacity: adding ? 0.7 : 1 }}
+              accessibilityRole="button"
+              accessibilityLabel="Add to calendar"
+              accessibilityState={{ busy: adding }}
+              testID="add-to-calendar"
+            >
+              {adding ? (
+                <Styled.LoadingIcon color={theme.colors.background} />
+              ) : (
+                <Ionicons name="calendar-outline" size={22} color={theme.colors.background} />
+              )}
+              <Styled.PrimaryButtonText>Add to calendar</Styled.PrimaryButtonText>
+            </Styled.PrimaryButton>
+          </Styled.GameModalFooter>
           <Styled.ModalCloseButton
             onPress={onClose}
             hitSlop={10}
