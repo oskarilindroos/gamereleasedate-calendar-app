@@ -10,16 +10,16 @@ import { mockGames, type MockGameFixture } from "./fixtures.ts";
 
 export const MOCK_CLIENT_ID = "mock-client-id";
 export const MOCK_CLIENT_SECRET = "mock-client-secret";
-export const MOCK_ACCESS_TOKEN = "mock-access-token";
+const MOCK_ACCESS_TOKEN = "mock-access-token";
 
 const DAY_SECONDS = 24 * 60 * 60;
 
-export interface MockResponse {
+interface MockResponse {
   status: number;
   body: unknown;
 }
 
-export interface MockRequest {
+interface MockRequest {
   method: string;
   url: string;
   headers?: Record<string, string>;
@@ -60,7 +60,7 @@ const toApiGame = (game: MockGameFixture, now: Date) => ({
 const unescapeQueryString = (value: string) => value.replace(/\\(.)/g, "$1");
 
 // Interprets the Apicalypse body sent by the app
-export const queryMockGames = (query: string, now: Date = new Date()) => {
+const queryMockGames = (query: string, now: Date = new Date()) => {
   const where = /where ([\s\S]*?);/.exec(query)?.[1] ?? "";
   const search = /name ~ \*"((?:[^"\\]|\\.)*)"\*/.exec(where)?.[1];
   const after = /first_release_date > (\d+)/.exec(where)?.[1];

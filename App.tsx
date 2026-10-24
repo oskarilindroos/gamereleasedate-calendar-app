@@ -78,10 +78,7 @@ export default function App({ gamesService, queryClient }: AppProps) {
   useAppStateFocus();
 
   const [fontsLoaded, fontError] = useFonts({
-    MontserratRegular: require("./assets/fonts/Montserrat-Regular.ttf"),
     MontserratSemiBold: require("./assets/fonts/Montserrat-SemiBold.ttf"),
-    MontserratBold: require("./assets/fonts/Montserrat-Bold.ttf"),
-    MontserratItalic: require("./assets/fonts/Montserrat-Italic.ttf"),
   });
 
   useEffect(() => {

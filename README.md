@@ -41,18 +41,14 @@ The `ios/` and `android/` folders are generated (`npx expo prebuild`) and not co
 
 1. Make sure Xcode is the active developer directory: `sudo xcode-select -s /Applications/Xcode.app`
 2. Enable *Developer Mode* on the iPhone (Settings → Privacy & Security → Developer Mode) and connect it with a cable.
-3. Generate the native project and pick a signing team:
-   ```sh
-   npx expo prebuild --platform ios
-   open ios/GameReleaseCalendar.xcworkspace
-   ```
-   In Xcode: *GameReleaseCalendar* target → *Signing & Capabilities* → choose your team (a free Apple ID "Personal Team" works).
-   If the bundle identifier is taken, change `ios.bundleIdentifier` in `app.json` and run prebuild again.
+3. Set your signing team: sign in with your Apple ID in Xcode (*Settings → Accounts*; a free "Personal Team" works) and
+   put its team ID in `ios.appleTeamId` in `app.json`. If the bundle identifier is taken, change `ios.bundleIdentifier` too.
 4. Install and run:
    ```sh
    npx expo run:ios --device                          # development build, loads JS from Metro (same Wi-Fi as the Mac)
    npx expo run:ios --device --configuration Release  # standalone build, works without the Mac
    ```
+   The Release build embeds the IGDB credentials from `.env`, so don't share the built app.
    With a free Apple ID the app has to be reinstalled every 7 days. With a paid Apple Developer account you can instead
    use EAS: `eas device:create`, then `eas build --profile preview --platform ios`.
 
@@ -85,8 +81,9 @@ npm run e2e         # Maestro flows on the iOS simulator (needs `mock-api` + `st
 App.tsx                 providers (theme, games service, navigation) and root layout
 components/             UI components and screens
 context/                React contexts (theme mode, games service injection)
-hooks/                  useGames (paged loading/search state), useCalendar, useCalendarEntries
+hooks/                  useGames (paged loading/search state), useCalendar, useCalendarEntries, useRefreshOnFocus
 services/igdb/          IGDB client: auth token provider, query builders, response mapping
+services/query/         TanStack Query client and query keys
 services/calendar/      adding, listing and removing release events in the device calendar
 config/env.ts           EXPO_PUBLIC_* configuration
 mock-igdb/              mock IGDB API (tests + local server)
@@ -108,5 +105,6 @@ mock-igdb/              mock IGDB API (tests + local server)
 
 ![Home page](assets/prototype/home.jpg)
 ![Home page 2](assets/prototype/home_2.jpg)
-![Home page 2](assets/prototype/search_results.jpg)
-![Home page 2](assets/prototype/settings.jpg)
+![Search results](assets/prototype/search_results.jpg)
+![Settings](assets/prototype/settings.jpg)
+![About](assets/prototype/about.jpg)

@@ -4,7 +4,7 @@ import { useGamesService } from "../context/GamesServiceContext";
 import { queryKeys } from "../services/query/queryClient";
 import { Game } from "../types/games";
 
-export const PAGE_SIZE = 30;
+const PAGE_SIZE = 30;
 
 // Offset pages of games with the same release date can overlap if IGDB orders
 // them differently between requests, so skip games that are already listed

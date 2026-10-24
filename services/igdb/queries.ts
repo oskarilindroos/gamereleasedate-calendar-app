@@ -5,7 +5,7 @@ const GAME_FIELDS =
 
 // Game types that are add-ons to another game rather than games of their own.
 // IDs from the IGDB game_types endpoint: https://api-docs.igdb.com/#game-type
-export const EXCLUDED_GAME_TYPES = {
+const EXCLUDED_GAME_TYPES = {
   dlcAddon: 1,
   expansion: 2,
   pack: 13,

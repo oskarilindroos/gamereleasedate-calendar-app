@@ -16,8 +16,6 @@ declare module "styled-components/native" {
       divider: string;
       // Loading placeholders and covers that haven't loaded yet
       placeholder: string;
-      gradients: string[];
-      gradients2: string[];
     };
 
     fontSizes: {

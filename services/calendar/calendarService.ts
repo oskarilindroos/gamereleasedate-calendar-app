@@ -6,7 +6,7 @@ export const CALENDAR_TITLE = "Game Release Date Calendar";
 const CALENDAR_COLOR = "#2196F3";
 const EVENT_DURATION_MS = 60 * 60 * 1000;
 
-export type AddEventResult = "added" | "already-exists" | "permission-denied";
+type AddEventResult = "added" | "already-exists" | "permission-denied";
 
 // A game release event in the app's calendar
 export interface CalendarEntry {
@@ -17,7 +17,7 @@ export interface CalendarEntry {
   gameId: number | null;
 }
 
-export type CalendarEntriesResult =
+type CalendarEntriesResult =
   | { status: "ok"; entries: CalendarEntry[] }
   | { status: "permission-denied" };
 

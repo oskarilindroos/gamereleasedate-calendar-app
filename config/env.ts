@@ -2,7 +2,7 @@
 // must be referenced statically (no dynamic `process.env[name]` lookups).
 // NOTE: anything here ships inside the app binary and is not truly secret.
 
-export interface IgdbConfig {
+interface IgdbConfig {
   apiURL: string;
   imageURL: string;
   tokenURL: string;

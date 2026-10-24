@@ -12,8 +12,6 @@ export const darkTheme: DefaultTheme = {
     headerBackground: "#06081F",
     divider: "#001b36",
     placeholder: "#0d1246",
-    gradients: ["#06081F", "#111a6a"],
-    gradients2: ["#111a6a", "#06081F"],
   },
   fontSizes: {
     s: 12,
@@ -36,8 +34,6 @@ export const lightTheme: DefaultTheme = {
     headerBackground: "#f6f6f6",
     divider: "gray",
     placeholder: "#e8e8e8",
-    gradients: ["white", "#9f9f9f"],
-    gradients2: ["#111a6a", "#06081F"],
   },
   fontSizes: {
     s: 12,

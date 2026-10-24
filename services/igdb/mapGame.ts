@@ -5,7 +5,7 @@ import { releaseDayFromUnix } from "../../utils/dates";
 export const coverURL = (imageBaseURL: string, imageId?: string) =>
   `${imageBaseURL}/t_cover_big/${imageId ?? "nocover"}.png`;
 
-export const screenshotURL = (imageBaseURL: string, imageId: string) =>
+const screenshotURL = (imageBaseURL: string, imageId: string) =>
   `${imageBaseURL}/t_screenshot_med_2x/${imageId}.jpg`;
 
 // Converts an IGDB API game into the format used by the app
