@@ -1,4 +1,5 @@
 import { styled } from "styled-components/native";
+import { Image } from "expo-image";
 
 export const Wrapper = styled.View`
   background-color: ${({ theme }) => theme.colors.background};
@@ -73,10 +74,35 @@ export const GameCard = styled.View`
   margin-right: 10px;
 `;
 
-export const GameCardImage = styled.Image`
+export const GameCardImage = styled(Image)`
   width: 150px;
   height: 200px;
   border-radius: ${({ theme }) => theme.borderRadius}px;
+  background-color: ${({ theme }) => theme.colors.placeholder};
+`;
+
+// Loading placeholder with the same size and spacing as GameCard
+export const GameCardSkeleton = styled.View`
+  width: 150px;
+  margin-top: 20px;
+  margin-right: 10px;
+`;
+
+export const SkeletonBlock = styled.View`
+  border-radius: ${({ theme }) => theme.borderRadius}px;
+  background-color: ${({ theme }) => theme.colors.placeholder};
+`;
+
+export const SkeletonLine = styled.View`
+  height: 12px;
+  margin-top: 10px;
+  border-radius: 6px;
+  background-color: ${({ theme }) => theme.colors.placeholder};
+`;
+
+export const ListFooter = styled.View`
+  align-items: center;
+  padding: 20px 0;
 `;
 
 export const GameCardName = styled.Text`
@@ -176,10 +202,11 @@ export const CalendarEntryRow = styled.View`
   border-bottom-color: ${({ theme }) => theme.colors.divider};
 `;
 
-export const CalendarEntryCover = styled.Image`
+export const CalendarEntryCover = styled(Image)`
   width: 60px;
   height: 80px;
   border-radius: ${({ theme }) => theme.borderRadius / 2}px;
+  background-color: ${({ theme }) => theme.colors.placeholder};
 `;
 
 export const CalendarEntryInfo = styled.View`

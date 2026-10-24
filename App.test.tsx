@@ -55,6 +55,26 @@ describe("App", () => {
     expect(screen.queryByText("Kingdom of Ash")).not.toBeOnTheScreen();
   });
 
+  it("shows placeholder cards until the first games have loaded", async () => {
+    const service = createMockedGamesService();
+    let finishLoading!: () => void;
+    const loaded = new Promise<void>((resolve) => (finishLoading = resolve));
+    const getGamesReleasingSoon = service.getGamesReleasingSoon.bind(service);
+    service.getGamesReleasingSoon = async (...args) => {
+      await loaded;
+      return getGamesReleasingSoon(...args);
+    };
+    await render(<App gamesService={service} />);
+
+    expect(await screen.findByLabelText("Loading games")).toBeOnTheScreen();
+    expect(screen.getByText("Games releasing soon")).toBeOnTheScreen();
+
+    await act(async () => finishLoading());
+
+    expect(await screen.findByText("Stellar Frontier")).toBeOnTheScreen();
+    expect(screen.queryByLabelText("Loading games")).not.toBeOnTheScreen();
+  });
+
   it("searches games from the header", async () => {
     await renderApp();
     const input = screen.getByPlaceholderText("Search games...");

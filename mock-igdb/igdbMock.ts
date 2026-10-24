@@ -1,6 +1,6 @@
 // A small in-memory imitation of the Twitch OAuth + IGDB /games endpoints.
 // It interprets the subset of the Apicalypse query language that the app uses
-// (name search, release date range, version_parent/theme filters, sort, limit),
+// (name search, release date range, version_parent/theme filters, sort, limit, offset),
 // so the app's real HTTP client and query builders are exercised against it.
 //
 // Used by the Jest tests (via createMockFetch) and by the dev server (server.ts).
@@ -66,6 +66,7 @@ export const queryMockGames = (query: string, now: Date = new Date()) => {
   const after = /first_release_date > (\d+)/.exec(where)?.[1];
   const before = /first_release_date < (\d+)/.exec(where)?.[1];
   const limit = Number(/limit (\d+);/.exec(query)?.[1] ?? 10);
+  const offset = Number(/offset (\d+);/.exec(query)?.[1] ?? 0);
   const excludeVersions = where.includes("version_parent = null");
   const ids = /(?:^|[\s&])id = \(([\d,\s]+)\)/.exec(where)?.[1]?.split(",").map(Number);
   const excludedTheme = /themes\.slug != "(\w+)"/.exec(where)?.[1];
@@ -90,7 +91,7 @@ export const queryMockGames = (query: string, now: Date = new Date()) => {
     .filter((game) => after === undefined || game.first_release_date > Number(after))
     .filter((game) => before === undefined || game.first_release_date < Number(before))
     .sort((a, b) => a.first_release_date - b.first_release_date)
-    .slice(0, limit);
+    .slice(offset, offset + limit);
 };
 
 export const handleMockRequest = (

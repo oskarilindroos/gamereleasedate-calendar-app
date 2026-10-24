@@ -9,6 +9,7 @@ import { createTwitchTokenProvider, TokenProvider } from "./twitchTokenProvider"
 const NOW = new Date(Date.UTC(2026, 9, 24, 12));
 const API_URL = "https://api.example.com/v4";
 const IMAGE_URL = "https://images.example.com";
+const PAGE = { offset: 0, limit: 50 };
 
 // Real service + token provider, talking to the mock IGDB API
 const createService = (fetchFn = createMockFetch(() => NOW)) =>
@@ -28,7 +29,7 @@ const createService = (fetchFn = createMockFetch(() => NOW)) =>
 
 describe("igdbGamesService (against the mock IGDB API)", () => {
   it("returns games releasing in the next 30 days, soonest first", async () => {
-    const games = await createService().getGamesReleasingSoon();
+    const { games } = await createService().getGamesReleasingSoon(PAGE);
 
     expect(games.map((game) => game.name)).toEqual([
       "Stellar Frontier",
@@ -42,7 +43,7 @@ describe("igdbGamesService (against the mock IGDB API)", () => {
   });
 
   it("excludes DLC, expansions and DLC packs but keeps standalone expansions", async () => {
-    const names = (await createService().getGamesReleasingSoon()).map(
+    const names = (await createService().getGamesReleasingSoon(PAGE)).games.map(
       (game) => game.name
     );
 
@@ -53,7 +54,7 @@ describe("igdbGamesService (against the mock IGDB API)", () => {
   });
 
   it("excludes editions and adult games", async () => {
-    const names = (await createService().getGamesReleasingSoon()).map(
+    const names = (await createService().getGamesReleasingSoon(PAGE)).games.map(
       (game) => game.name
     );
 
@@ -62,12 +63,24 @@ describe("igdbGamesService (against the mock IGDB API)", () => {
   });
 
   it("searches all upcoming games by name, case-insensitively", async () => {
-    const games = await createService().searchUpcomingGames("STELLAR");
+    const { games } = await createService().searchUpcomingGames("STELLAR", PAGE);
 
     expect(games.map((game) => game.name)).toEqual([
       "Stellar Frontier",
       "Stellar Frontier: Echoes",
     ]);
+  });
+
+  it("pages through the results", async () => {
+    const service = createService();
+    const all = await service.getGamesReleasingSoon(PAGE);
+
+    const first = await service.getGamesReleasingSoon({ offset: 0, limit: 3 });
+    const second = await service.getGamesReleasingSoon({ offset: 3, limit: 3 });
+    const last = await service.getGamesReleasingSoon({ offset: 6, limit: 3 });
+
+    expect([...first.games, ...second.games, ...last.games]).toEqual(all.games);
+    expect([first.hasMore, second.hasMore, last.hasMore]).toEqual([true, true, false]);
   });
 
   it("looks up games by id, including DLC and released games", async () => {
@@ -83,11 +96,16 @@ describe("igdbGamesService (against the mock IGDB API)", () => {
   });
 
   it("doesn't return games that were already released", async () => {
-    expect(await createService().searchUpcomingGames("Retro Kart")).toEqual([]);
+    expect(await createService().searchUpcomingGames("Retro Kart", PAGE)).toEqual({
+      games: [],
+      hasMore: false,
+    });
   });
 
   it("maps the response to app games", async () => {
-    const [game] = await createService().searchUpcomingGames("Stellar Frontier");
+    const {
+      games: [game],
+    } = await createService().searchUpcomingGames("Stellar Frontier", PAGE);
 
     expect(game).toEqual({
       id: 1001,
@@ -106,7 +124,7 @@ describe("igdbGamesService (against the mock IGDB API)", () => {
 
   it("sends the IGDB auth headers", async () => {
     const fetchFn = jest.fn(createMockFetch(() => NOW));
-    await createService(fetchFn).getGamesReleasingSoon();
+    await createService(fetchFn).getGamesReleasingSoon(PAGE);
 
     expect(fetchFn).toHaveBeenLastCalledWith(
       `${API_URL}/games`,
@@ -147,7 +165,10 @@ describe("igdbGamesService error handling", () => {
       .mockResolvedValueOnce(response(401))
       .mockResolvedValueOnce(response(200, []));
 
-    await expect(createWith(fetchFn, provider).getGamesReleasingSoon()).resolves.toEqual([]);
+    await expect(createWith(fetchFn, provider).getGamesReleasingSoon(PAGE)).resolves.toEqual({
+      games: [],
+      hasMore: false,
+    });
     expect(provider.invalidate).toHaveBeenCalledTimes(1);
     expect(fetchFn).toHaveBeenCalledTimes(2);
   });
@@ -155,10 +176,20 @@ describe("igdbGamesService error handling", () => {
   it("throws an ApiError on other failures", async () => {
     const fetchFn = jest.fn().mockResolvedValue(response(429));
 
-    await expect(createWith(fetchFn).searchUpcomingGames("x")).rejects.toMatchObject({
+    await expect(createWith(fetchFn).searchUpcomingGames("x", PAGE)).rejects.toMatchObject({
       name: "ApiError",
       status: 429,
     });
+  });
+
+  it("counts undated games when deciding whether there are more pages", async () => {
+    const fetchFn = jest
+      .fn()
+      .mockResolvedValue(response(200, [{ id: 1, name: "No date" }]));
+
+    await expect(
+      createWith(fetchFn).getGamesReleasingSoon({ offset: 0, limit: 1 })
+    ).resolves.toEqual({ games: [], hasMore: true });
   });
 
   it("skips games without a release date", async () => {
@@ -166,14 +197,17 @@ describe("igdbGamesService error handling", () => {
       .fn()
       .mockResolvedValue(response(200, [{ id: 1, name: "No date" }]));
 
-    await expect(createWith(fetchFn).searchUpcomingGames("x")).resolves.toEqual([]);
+    await expect(createWith(fetchFn).searchUpcomingGames("x", PAGE)).resolves.toEqual({
+      games: [],
+      hasMore: false,
+    });
   });
 
   it("passes the abort signal to fetch", async () => {
     const fetchFn = jest.fn().mockResolvedValue(response(200, []));
     const controller = new AbortController();
 
-    await createWith(fetchFn).getGamesReleasingSoon(controller.signal);
+    await createWith(fetchFn).getGamesReleasingSoon(PAGE, controller.signal);
     expect(fetchFn.mock.calls[0][1].signal).toBe(controller.signal);
   });
 });

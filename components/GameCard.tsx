@@ -25,6 +25,9 @@ function GameCard({ game, onPress }: GameCardProps) {
           source={{
             uri: game.coverURL,
           }}
+          // Fade in when loaded; the list recycles cards, so tie the image to the game
+          transition={200}
+          recyclingKey={String(game.id)}
         />
       </Pressable>
       <Styled.GameCardName>{game.name}</Styled.GameCardName>

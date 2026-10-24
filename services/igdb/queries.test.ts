@@ -13,7 +13,7 @@ describe("escapeQueryString", () => {
 
 describe("searchUpcomingGamesQuery", () => {
   it("searches upcoming games by name, sorted by release date", () => {
-    const query = searchUpcomingGamesQuery("  zelda ", 1_000);
+    const query = searchUpcomingGamesQuery("  zelda ", 1_000, { offset: 60, limit: 30 });
 
     expect(query).toContain('where name ~ *"zelda"*');
     expect(query).toContain("first_release_date > 1000;");
@@ -21,11 +21,11 @@ describe("searchUpcomingGamesQuery", () => {
     expect(query).toContain("version_parent = null");
     expect(query).toContain("game_type != (1,2,13)");
     expect(query).toContain("sort first_release_date asc;");
-    expect(query).toContain("limit 200;");
+    expect(query).toContain("limit 30;\noffset 60;");
   });
 
   it("can't be broken by quotes in the search phrase", () => {
-    const query = searchUpcomingGamesQuery('a"; limit 1; "', 0);
+    const query = searchUpcomingGamesQuery('a"; limit 1; "', 0, { offset: 0, limit: 30 });
     expect(query).toContain('name ~ *"a\\"; limit 1; \\""*');
   });
 });
@@ -42,10 +42,10 @@ describe("gamesByIdsQuery", () => {
 
 describe("gamesReleasingBetweenQuery", () => {
   it("filters games by release date range", () => {
-    const query = gamesReleasingBetweenQuery(100, 200);
+    const query = gamesReleasingBetweenQuery(100, 200, { offset: 0, limit: 30 });
 
     expect(query).toContain("first_release_date > 100 & first_release_date < 200;");
     expect(query).toContain("game_type != (1,2,13)");
-    expect(query).toContain("limit 400;");
+    expect(query).toContain("limit 30;\noffset 0;");
   });
 });

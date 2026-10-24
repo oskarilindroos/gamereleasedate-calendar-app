@@ -1,10 +1,11 @@
 import { IgdbGame } from "../../types/games";
-import { GamesService } from "../GamesService";
+import { GamesPage, GamesService } from "../GamesService";
 import { DAY_IN_SECONDS, toUnixSeconds } from "../../utils/dates";
 import { mapIgdbGame } from "./mapGame";
 import {
   gamesByIdsQuery,
   gamesReleasingBetweenQuery,
+  PageRequest,
   searchUpcomingGamesQuery,
 } from "./queries";
 import { TokenProvider } from "./twitchTokenProvider";
@@ -66,31 +67,47 @@ export const createIgdbGamesService = ({
     }
 
     const games: IgdbGame[] = await response.json();
-    return games
+    return games;
+  };
+
+  const toAppGames = (games: IgdbGame[]) =>
+    games
       .filter((game) => typeof game.first_release_date === "number")
       .map((game) => mapIgdbGame(game, imageURL));
+
+  const queryPage = async (
+    body: string,
+    page: PageRequest,
+    signal?: AbortSignal
+  ): Promise<GamesPage> => {
+    const games = await queryGames(body, signal);
+    // A full page means there may be more; count before dropping undated games
+    return { games: toAppGames(games), hasMore: games.length >= page.limit };
   };
 
   return {
-    getGamesReleasingSoon(signal) {
+    getGamesReleasingSoon(page, signal) {
       const nowUnix = toUnixSeconds(now());
-      return queryGames(
+      return queryPage(
         gamesReleasingBetweenQuery(
           nowUnix,
-          nowUnix + RELEASING_SOON_DAYS * DAY_IN_SECONDS
+          nowUnix + RELEASING_SOON_DAYS * DAY_IN_SECONDS,
+          page
         ),
+        page,
         signal
       );
     },
-    searchUpcomingGames(searchPhrase, signal) {
-      return queryGames(
-        searchUpcomingGamesQuery(searchPhrase, toUnixSeconds(now())),
+    searchUpcomingGames(searchPhrase, page, signal) {
+      return queryPage(
+        searchUpcomingGamesQuery(searchPhrase, toUnixSeconds(now()), page),
+        page,
         signal
       );
     },
     async getGamesByIds(ids, signal) {
       if (ids.length === 0) return [];
-      return queryGames(gamesByIdsQuery(ids), signal);
+      return toAppGames(await queryGames(gamesByIdsQuery(ids), signal));
     },
   };
 };

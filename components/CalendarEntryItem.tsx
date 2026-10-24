@@ -20,6 +20,7 @@ function CalendarEntryItem({ item, onRemove }: CalendarEntryItemProps) {
     <Styled.CalendarEntryRow>
       <Styled.CalendarEntryCover
         source={{ uri: item.game?.coverURL ?? coverURL(igdbConfig.imageURL) }}
+        transition={200}
       />
       <Styled.CalendarEntryInfo>
         <Styled.GameCardName>{item.title}</Styled.GameCardName>

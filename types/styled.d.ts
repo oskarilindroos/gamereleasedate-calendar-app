@@ -14,6 +14,8 @@ declare module "styled-components/native" {
       secondaryBackground: string;
       headerBackground: string;
       divider: string;
+      // Loading placeholders and covers that haven't loaded yet
+      placeholder: string;
       gradients: string[];
       gradients2: string[];
     };

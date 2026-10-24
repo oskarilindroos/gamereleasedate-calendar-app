@@ -18,6 +18,14 @@ const BASE_FILTER = [
   `game_type != (${Object.values(EXCLUDED_GAME_TYPES).join(",")})`,
 ].join(" & ");
 
+// A slice of a sorted result list. IGDB returns at most 500 games per request.
+export interface PageRequest {
+  offset: number;
+  limit: number;
+}
+
+const pageClause = ({ offset, limit }: PageRequest) => `limit ${limit};\noffset ${offset};`;
+
 // Escape user input so it can't break out of a quoted Apicalypse string
 export const escapeQueryString = (value: string): string =>
   value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
@@ -25,13 +33,13 @@ export const escapeQueryString = (value: string): string =>
 export const searchUpcomingGamesQuery = (
   searchPhrase: string,
   nowUnix: number,
-  limit = 200
+  page: PageRequest
 ): string =>
   [
     GAME_FIELDS,
     `where name ~ *"${escapeQueryString(searchPhrase.trim())}"* & ${BASE_FILTER} & first_release_date > ${nowUnix};`,
     "sort first_release_date asc;",
-    `limit ${limit};`,
+    pageClause(page),
   ].join("\n");
 
 // No content filters: a game the user already added is shown whatever its type
@@ -41,11 +49,11 @@ export const gamesByIdsQuery = (ids: number[]): string =>
 export const gamesReleasingBetweenQuery = (
   fromUnix: number,
   toUnix: number,
-  limit = 400
+  page: PageRequest
 ): string =>
   [
     GAME_FIELDS,
     `where ${BASE_FILTER} & first_release_date > ${fromUnix} & first_release_date < ${toUnix};`,
     "sort first_release_date asc;",
-    `limit ${limit};`,
+    pageClause(page),
   ].join("\n");

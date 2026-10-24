@@ -5,6 +5,8 @@ Releases are added to a separate "Game Release Date Calendar" calendar as events
 release day, since that's usually when games unlock. The *Calendar* screen in the drawer lists the games you've
 added and lets you remove them.
 
+The game lists load 30 games at a time and fetch more as you scroll. Covers are cached with `expo-image`.
+
 # Technologies
 
 - React Native 0.88 + Expo SDK 58 (iOS and Android)
@@ -81,7 +83,7 @@ npm run e2e         # Maestro flows on the iOS simulator (needs `mock-api` + `st
 App.tsx                 providers (theme, games service, navigation) and root layout
 components/             UI components and screens
 context/                React contexts (theme mode, games service injection)
-hooks/                  useGames (loading/search state), useCalendar, useCalendarEntries
+hooks/                  useGames (paged loading/search state), useCalendar, useCalendarEntries
 services/igdb/          IGDB client: auth token provider, query builders, response mapping
 services/calendar/      adding, listing and removing release events in the device calendar
 config/env.ts           EXPO_PUBLIC_* configuration
