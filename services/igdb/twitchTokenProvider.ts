@@ -30,13 +30,15 @@ export const createTwitchTokenProvider = ({
   let pending: Promise<string> | null = null;
 
   const requestToken = async (): Promise<string> => {
-    const params = new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      grant_type: "client_credentials",
-    });
-    const response = await fetchFn(`${tokenURL}?${params.toString()}`, {
+    // Credentials go in a form-encoded body (not the URL) so the secret doesn't end up in logs
+    const response = await fetchFn(tokenURL, {
       method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        grant_type: "client_credentials",
+      }).toString(),
     });
     if (!response.ok) {
       throw new Error(`Fetching access token failed (${response.status})`);

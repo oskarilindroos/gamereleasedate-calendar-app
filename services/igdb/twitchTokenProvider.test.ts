@@ -25,10 +25,11 @@ describe("twitchTokenProvider", () => {
     fetchFn.mockResolvedValue(tokenResponse("abc"));
 
     await expect(provider.getToken()).resolves.toBe("abc");
-    expect(fetchFn).toHaveBeenCalledWith(
-      "https://id.example.com/oauth2/token?client_id=id&client_secret=secret&grant_type=client_credentials",
-      { method: "POST" }
-    );
+    expect(fetchFn).toHaveBeenCalledWith("https://id.example.com/oauth2/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: "client_id=id&client_secret=secret&grant_type=client_credentials",
+    });
   });
 
   it("caches the token until it is about to expire", async () => {

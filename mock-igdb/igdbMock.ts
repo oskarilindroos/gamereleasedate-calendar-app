@@ -97,9 +97,13 @@ export const handleMockRequest = (
     )?.[1];
 
   if (method === "POST" && pathname.endsWith("/oauth2/token")) {
+    // Twitch documents a form-encoded body; it also accepts query string parameters
+    const form = new URLSearchParams(body);
+    const param = (name: string) => form.get(name) ?? searchParams.get(name);
     if (
-      searchParams.get("client_id") !== MOCK_CLIENT_ID ||
-      searchParams.get("client_secret") !== MOCK_CLIENT_SECRET
+      param("client_id") !== MOCK_CLIENT_ID ||
+      param("client_secret") !== MOCK_CLIENT_SECRET ||
+      param("grant_type") !== "client_credentials"
     ) {
       return { status: 403, body: { status: 403, message: "invalid client secret" } };
     }
