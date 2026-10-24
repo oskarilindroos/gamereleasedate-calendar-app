@@ -1,9 +1,8 @@
-import { Pressable, View } from "react-native";
-
+import { Pressable } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "styled-components/native";
 import * as Styled from "../styled/styles";
 import SearchBar from "./SearchBar/SearchBar";
-import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "styled-components";
 import * as NavigationService from "../../services/NavigationService";
 
 export default function Header() {
@@ -15,6 +14,8 @@ export default function Header() {
         <Pressable
           onPress={() => NavigationService.toggleDrawer()}
           hitSlop={20}
+          accessibilityRole="button"
+          accessibilityLabel="Open menu"
         >
           <Ionicons name={"menu"} size={50} color={theme.colors.primary} />
         </Pressable>
@@ -23,6 +24,3 @@ export default function Header() {
     </Styled.HeaderContainer>
   );
 }
-/*
-<Ionicons name={"menu"} size={45} color={theme.colors.primary} />
-*/

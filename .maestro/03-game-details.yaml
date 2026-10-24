@@ -1,0 +1,27 @@
+appId: com.misnu.GameReleaseCalendar
+name: Shows game details and adds the release date to the calendar
+---
+- runFlow: subflows/launch.yaml
+- tapOn: "Stellar Frontier details"
+- extendedWaitUntil:
+    visible: "Release date:.*"
+    timeout: 5000
+- assertVisible: ".*PC, PS5, XSX.*"
+- takeScreenshot: 03-details
+# Screenshot preview
+- tapOn: "Screenshot 1 of 3"
+- assertVisible: "Close preview"
+- takeScreenshot: 04-preview
+- tapOn: "Close preview"
+# Add to calendar, then try again to hit the duplicate check
+- scrollUntilVisible:
+    element: "Add to calendar"
+- tapOn: "Add to calendar"
+# The device calendar outlives the app's state, so the event may exist from an earlier run
+- extendedWaitUntil:
+    visible: "Event (added to calendar|already exists)"
+    timeout: 10000
+- tapOn: "Add to calendar"
+- extendedWaitUntil:
+    visible: "Event already exists"
+    timeout: 10000

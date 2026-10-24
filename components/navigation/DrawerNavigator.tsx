@@ -1,17 +1,20 @@
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import CustomDrawer from "./CustomDrawer";
 import { useTheme } from "styled-components/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { ThemeStateProps } from "../../types/styled.d";
+import { DrawerParamList } from "../../types/navigation";
 
 import HomeScreen from "./screens/HomeScreen";
+import CalendarScreen from "./screens/CalendarScreen";
 import SettingsScreen from "./screens/SettingsScreen";
 import AboutScreen from "./screens/AboutScreen";
 
-const Drawer = createDrawerNavigator();
+const Drawer = createDrawerNavigator<DrawerParamList>();
 
-export default function DrawerNavigator({ setTheme }: ThemeStateProps) {
+export default function DrawerNavigator() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Drawer.Navigator
@@ -20,14 +23,14 @@ export default function DrawerNavigator({ setTheme }: ThemeStateProps) {
       screenOptions={{
         headerShown: false,
         drawerStyle: {
-          width: 210,
+          // The drawer content is padded for the notch in landscape; keep the labels' room
+          width: 210 + insets.left,
         },
         drawerActiveTintColor: theme.colors.primary,
         drawerInactiveTintColor: theme.colors.secondary,
         drawerLabelStyle: {
           fontSize: theme.fontSizes.l,
           fontFamily: "MontserratSemiBold",
-          marginLeft: -10,
         },
         drawerType: "slide",
         swipeEdgeWidth: 200,
@@ -43,15 +46,23 @@ export default function DrawerNavigator({ setTheme }: ThemeStateProps) {
         }}
       />
       <Drawer.Screen
+        name="Calendar"
+        component={CalendarScreen}
+        options={{
+          drawerIcon: ({ color }) => (
+            <Ionicons name="calendar" size={25} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
         name="Settings"
+        component={SettingsScreen}
         options={{
           drawerIcon: ({ color }) => (
             <Ionicons name="settings-sharp" size={25} color={color} />
           ),
         }}
-      >
-        {() => <SettingsScreen setTheme={setTheme} />}
-      </Drawer.Screen>
+      />
       <Drawer.Screen
         name="About"
         component={AboutScreen}

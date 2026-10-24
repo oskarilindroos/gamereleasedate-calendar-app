@@ -1,5 +1,5 @@
 import { Pressable } from "react-native";
-import { useTheme } from "styled-components";
+import { useTheme } from "styled-components/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import * as NavigationService from "../../../services/NavigationService";
@@ -10,15 +10,18 @@ export default function SearchBar() {
   const [focused, setFocused] = useState(false);
   const [searchPhrase, setSearchPhrase] = useState("");
 
+  // An empty search returns to the default "Games releasing soon" list
   const onSubmitSearch = () => {
-    NavigationService.navigateTo("Home", searchPhrase);
+    NavigationService.searchGames(searchPhrase);
   };
 
   return (
     <Styled.SearchBarContainer>
       <Pressable
-        onPress={searchPhrase.length > 0 ? onSubmitSearch : null}
+        onPress={searchPhrase.length > 0 ? onSubmitSearch : undefined}
         hitSlop={20}
+        accessibilityRole="button"
+        accessibilityLabel="Search"
       >
         <Ionicons
           style={{
@@ -31,23 +34,25 @@ export default function SearchBar() {
         />
       </Pressable>
       <Styled.SearchBarTextInput
+        testID="search-input"
         placeholder="Search games..."
         placeholderTextColor={theme.colors.secondary}
         cursorColor={theme.colors.primary}
+        selectionColor={theme.colors.primary}
         value={searchPhrase}
         onSubmitEditing={onSubmitSearch}
+        returnKeyType="search"
+        autoCorrect={false}
         maxLength={40}
-        onChangeText={(text) => setSearchPhrase(text)}
-        onFocus={() => {
-          setFocused(true);
-        }}
+        onChangeText={setSearchPhrase}
+        onFocus={() => setFocused(true)}
       />
       {focused && searchPhrase.length > 0 && (
         <Pressable
-          onPress={() => {
-            setSearchPhrase("");
-          }}
+          onPress={() => setSearchPhrase("")}
           hitSlop={20}
+          accessibilityRole="button"
+          accessibilityLabel="Clear search"
         >
           <Ionicons
             style={{

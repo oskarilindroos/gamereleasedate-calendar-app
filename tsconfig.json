@@ -2,9 +2,14 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "allowImportingTsExtensions": true,
     "types": [
-      "@types/styled-components-react-native",
-      "@types/styled-components"
+      "jest",
+      "node"
     ]
   },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ]
 }

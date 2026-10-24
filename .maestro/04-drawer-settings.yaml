@@ -1,0 +1,15 @@
+appId: com.misnu.GameReleaseCalendar
+name: Navigates with the drawer and switches theme
+---
+- runFlow: subflows/launch.yaml
+- tapOn: "Open menu"
+- takeScreenshot: 05-drawer
+- tapOn: ".*Settings"
+- assertVisible: "Dark Mode"
+- tapOn:
+    id: "dark-mode-switch"
+- takeScreenshot: 06-settings-toggled
+- tapOn: "Open menu"
+- tapOn: ".*About"
+- assertVisible: ".*publicly available game database.*"
+- takeScreenshot: 07-about

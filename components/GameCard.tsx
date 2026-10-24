@@ -1,36 +1,39 @@
-import { TouchableHighlight, Pressable } from "react-native";
-import GameCardModal from "./GameCardModal";
-import { useState } from "react";
-import { useTheme } from "styled-components";
+import { memo } from "react";
+import { Pressable } from "react-native";
+import { useTheme } from "styled-components/native";
 import * as Styled from "./styled/styles";
-import { Game } from "../types/games.d";
+import { Game } from "../types/games";
+import { formatReleaseDate } from "../utils/dates";
 
-export default function GameCard({ game }: { game: Game }) {
+interface GameCardProps {
+  game: Game;
+  onPress: (game: Game) => void;
+}
+
+function GameCard({ game, onPress }: GameCardProps) {
   const theme = useTheme();
-  const [showModal, setShowModal] = useState(false);
 
   return (
     <Styled.GameCard>
-      <GameCardModal
-        game={game}
-        setShowModal={setShowModal}
-        showModal={showModal}
-      />
       <Pressable
-        onPress={() => setShowModal(true)}
+        onPress={() => onPress(game)}
         style={{ borderRadius: theme.borderRadius }}
+        accessibilityRole="button"
+        accessibilityLabel={`${game.name} details`}
       >
         <Styled.GameCardImage
-          imageStyle={{
-            borderRadius: theme.borderRadius,
-          }}
           source={{
             uri: game.coverURL,
           }}
+          // Fade in when loaded; the list recycles cards, so tie the image to the game
+          transition={200}
+          recyclingKey={String(game.id)}
         />
       </Pressable>
       <Styled.GameCardName>{game.name}</Styled.GameCardName>
-      <Styled.GameCardDate>{game.firstReleaseDateString}</Styled.GameCardDate>
+      <Styled.GameCardDate>{formatReleaseDate(game.releaseDate)}</Styled.GameCardDate>
     </Styled.GameCard>
   );
 }
+
+export default memo(GameCard);
