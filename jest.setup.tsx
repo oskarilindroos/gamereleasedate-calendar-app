@@ -39,6 +39,8 @@ jest.mock("react-native-safe-area-context", () =>
 // Native calendar module; individual tests configure the mocked functions
 jest.mock("expo-calendar", () => ({
   requestCalendarPermissions: jest.fn(),
+  getCalendarPermissions: jest.fn(),
+  ExpoCalendarEvent: { get: jest.fn() },
   getCalendars: jest.fn(),
   createCalendar: jest.fn(),
   getDefaultCalendarSync: jest.fn(),

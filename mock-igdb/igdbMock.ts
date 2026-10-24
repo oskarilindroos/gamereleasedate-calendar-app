@@ -67,6 +67,7 @@ export const queryMockGames = (query: string, now: Date = new Date()) => {
   const before = /first_release_date < (\d+)/.exec(where)?.[1];
   const limit = Number(/limit (\d+);/.exec(query)?.[1] ?? 10);
   const excludeVersions = where.includes("version_parent = null");
+  const ids = /(?:^|[\s&])id = \(([\d,\s]+)\)/.exec(where)?.[1]?.split(",").map(Number);
   const excludedTheme = /themes\.slug != "(\w+)"/.exec(where)?.[1];
   const excludedGameTypes = (/game_type != \(([\d,\s]+)\)/.exec(where)?.[1] ?? "")
     .split(",")
@@ -74,6 +75,7 @@ export const queryMockGames = (query: string, now: Date = new Date()) => {
     .map(Number);
 
   return mockGames
+    .filter((game) => ids === undefined || ids.includes(game.id))
     .filter((game) => !(excludeVersions && game.versionParent))
     .filter(
       (game) => !(excludedTheme && game.themeSlugs?.includes(excludedTheme))

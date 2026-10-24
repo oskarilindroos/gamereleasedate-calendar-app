@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { DrawerParamList } from "../../types/navigation";
 
 import HomeScreen from "./screens/HomeScreen";
+import CalendarScreen from "./screens/CalendarScreen";
 import SettingsScreen from "./screens/SettingsScreen";
 import AboutScreen from "./screens/AboutScreen";
 
@@ -38,6 +39,15 @@ export default function DrawerNavigator() {
         options={{
           drawerIcon: ({ color }) => (
             <Ionicons name="home" size={25} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="Calendar"
+        component={CalendarScreen}
+        options={{
+          drawerIcon: ({ color }) => (
+            <Ionicons name="calendar" size={25} color={color} />
           ),
         }}
       />

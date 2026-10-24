@@ -1,5 +1,6 @@
 import {
   escapeQueryString,
+  gamesByIdsQuery,
   gamesReleasingBetweenQuery,
   searchUpcomingGamesQuery,
 } from "./queries";
@@ -26,6 +27,16 @@ describe("searchUpcomingGamesQuery", () => {
   it("can't be broken by quotes in the search phrase", () => {
     const query = searchUpcomingGamesQuery('a"; limit 1; "', 0);
     expect(query).toContain('name ~ *"a\\"; limit 1; \\""*');
+  });
+});
+
+describe("gamesByIdsQuery", () => {
+  it("fetches the given games without content filters", () => {
+    const query = gamesByIdsQuery([3, 1, 2]);
+
+    expect(query).toContain("where id = (3,1,2);");
+    expect(query).toContain("limit 3;");
+    expect(query).not.toContain("game_type");
   });
 });
 

@@ -120,10 +120,73 @@ describe("App", () => {
 
     await waitFor(() =>
       expect(createEvent).toHaveBeenCalledWith(
-        expect.objectContaining({ title: "Stellar Frontier", allDay: true })
+        expect.objectContaining({
+          title: "Stellar Frontier",
+          startDate: new Date(2026, 9, 27),
+          notes: expect.stringContaining("IGDB game id: 1001"),
+        })
       )
     );
+    expect(createEvent.mock.calls[0][0]).not.toHaveProperty("allDay");
     expect(alert).toHaveBeenCalledWith("Event added to calendar");
+  });
+
+  it("lists the games added to the calendar and removes them", async () => {
+    const alert = jest.spyOn(Alert, "alert").mockImplementation((title, _message, buttons) => {
+      // Confirm the removal
+      if (title === "Remove from calendar?") buttons?.find(({ text }) => text === "Remove")?.onPress?.();
+    });
+    const deleteEvent = jest.fn().mockResolvedValue(undefined);
+    jest.mocked(Calendar.ExpoCalendarEvent.get).mockResolvedValue({
+      delete: deleteEvent,
+    } as unknown as Calendar.ExpoCalendarEvent);
+    jest.mocked(Calendar.getCalendarPermissions).mockResolvedValue({
+      status: "granted",
+    } as Calendar.PermissionResponse);
+    jest.mocked(Calendar.getCalendars).mockResolvedValue([
+      {
+        title: "Game Release Date Calendar",
+        allowsModifications: true,
+        listEvents: jest
+          .fn()
+          .mockResolvedValueOnce([
+            {
+              id: "event-1",
+              title: "Stellar Frontier",
+              startDate: new Date(2026, 9, 27).toISOString(),
+              notes: "IGDB game id: 1001",
+            },
+          ])
+          .mockResolvedValue([]),
+      } as unknown as Calendar.ExpoCalendar,
+    ]);
+    await renderApp();
+
+    await act(async () => navigationRef.navigate("Calendar"));
+
+    const remove = await screen.findByRole("button", { name: "Remove Stellar Frontier" });
+    expect(screen.getByText("Added to calendar")).toBeOnTheScreen();
+    expect(screen.getByText(/Oct 27, 2026 \(in 3 days\)/)).toBeOnTheScreen();
+
+    await userEvent.press(remove);
+
+    await waitFor(() => expect(deleteEvent).toHaveBeenCalled());
+    expect(Calendar.ExpoCalendarEvent.get).toHaveBeenCalledWith("event-1");
+    expect(await screen.findByText(/No games added yet/)).toBeOnTheScreen();
+    expect(alert).toHaveBeenCalledWith("Removed from calendar");
+  });
+
+  it("closes the game details with the close button", async () => {
+    await renderApp();
+
+    await userEvent.press(
+      screen.getByRole("button", { name: "Stellar Frontier details" })
+    );
+    await screen.findByTestId("game-modal");
+
+    await userEvent.press(screen.getByRole("button", { name: "Close" }));
+
+    await waitFor(() => expect(screen.queryByTestId("game-modal")).not.toBeOnTheScreen());
   });
 
   it("switches between dark and light theme in settings", async () => {

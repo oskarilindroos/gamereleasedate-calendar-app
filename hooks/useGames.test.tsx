@@ -19,6 +19,7 @@ const deferred = <T,>() => {
 const createService = (): jest.Mocked<GamesService> => ({
   getGamesReleasingSoon: jest.fn().mockResolvedValue([]),
   searchUpcomingGames: jest.fn().mockResolvedValue([]),
+  getGamesByIds: jest.fn().mockResolvedValue([]),
 });
 
 const renderUseGames = (service: GamesService, searchPhrase?: string) =>

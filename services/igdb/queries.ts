@@ -34,6 +34,10 @@ export const searchUpcomingGamesQuery = (
     `limit ${limit};`,
   ].join("\n");
 
+// No content filters: a game the user already added is shown whatever its type
+export const gamesByIdsQuery = (ids: number[]): string =>
+  [GAME_FIELDS, `where id = (${ids.join(",")});`, `limit ${ids.length};`].join("\n");
+
 export const gamesReleasingBetweenQuery = (
   fromUnix: number,
   toUnix: number,

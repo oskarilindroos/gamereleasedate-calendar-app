@@ -70,6 +70,18 @@ describe("igdbGamesService (against the mock IGDB API)", () => {
     ]);
   });
 
+  it("looks up games by id, including DLC and released games", async () => {
+    const games = await createService().getGamesByIds([1012, 1011, 1001]);
+
+    expect(games.map((game) => game.id).sort()).toEqual([1001, 1011, 1012]);
+  });
+
+  it("doesn't call the API for an empty id list", async () => {
+    const fetchFn = jest.fn(createMockFetch(() => NOW));
+    await expect(createService(fetchFn).getGamesByIds([])).resolves.toEqual([]);
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
   it("doesn't return games that were already released", async () => {
     expect(await createService().searchUpcomingGames("Retro Kart")).toEqual([]);
   });

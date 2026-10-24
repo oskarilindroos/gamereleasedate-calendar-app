@@ -82,7 +82,7 @@ export default function SlideUpModal({
       <Pressable
         style={StyleSheet.absoluteFill}
         onPress={onClose}
-        accessibilityLabel="Close"
+        accessibilityLabel="Dismiss"
         testID="modal-backdrop"
       />
       <Animated.View

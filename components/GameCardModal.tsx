@@ -1,4 +1,4 @@
-import { FontAwesome } from "@expo/vector-icons";
+import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useTheme } from "styled-components/native";
 import useCalendar from "../hooks/useCalendar";
 import ScreenshotCarousel from "./ScreenshotCarousel";
@@ -38,45 +38,58 @@ export default function GameCardModal({
       }}
     >
       {game && (
-        <Styled.GameModalContainer testID="game-modal">
-          {game.screenshotURLs.length > 0 && (
-            <ScreenshotCarousel urls={game.screenshotURLs} />
-          )}
-          <Styled.GameModalContentContainer>
-            <Styled.GameModalContentRow>
-              <Styled.Title>{game.name}</Styled.Title>
-              <Styled.ParagraphPrimaryColor>
-                Release date:
-                <Styled.Paragraph>
-                  {` ${formatReleaseDate(game.releaseDate)} (${formatReleasingIn(game.releaseDate)})`}
-                </Styled.Paragraph>
-              </Styled.ParagraphPrimaryColor>
-              <Styled.ParagraphPrimaryColor>
-                Releasing on:{" "}
-                <Styled.Paragraph>{game.platforms.join(", ")}</Styled.Paragraph>
-              </Styled.ParagraphPrimaryColor>
-              {game.summary && (
-                <Styled.GameSummaryContainer>
-                  <Styled.GameSummaryText>{`"${game.summary}"`}</Styled.GameSummaryText>
-                </Styled.GameSummaryContainer>
-              )}
-            </Styled.GameModalContentRow>
-            <Styled.GameModalContentRow>
-              <Styled.AddToCalendarButton
-                onPress={() => addEvent(game)}
-                accessibilityRole="button"
-                accessibilityLabel="Add to calendar"
-                testID="add-to-calendar"
-              >
-                <FontAwesome
-                  name="calendar-plus-o"
-                  size={120}
-                  color={theme.colors.primary}
-                />
-              </Styled.AddToCalendarButton>
-            </Styled.GameModalContentRow>
-          </Styled.GameModalContentContainer>
-        </Styled.GameModalContainer>
+        <Styled.GameModalFrame>
+          <Styled.GameModalContainer testID="game-modal">
+            {game.screenshotURLs.length > 0 && (
+              <ScreenshotCarousel urls={game.screenshotURLs} />
+            )}
+            <Styled.GameModalContentContainer>
+              <Styled.GameModalContentRow>
+                <Styled.Title>{game.name}</Styled.Title>
+                <Styled.ParagraphPrimaryColor>
+                  Release date:
+                  <Styled.Paragraph>
+                    {` ${formatReleaseDate(game.releaseDate)} (${formatReleasingIn(game.releaseDate)})`}
+                  </Styled.Paragraph>
+                </Styled.ParagraphPrimaryColor>
+                <Styled.ParagraphPrimaryColor>
+                  Releasing on:{" "}
+                  <Styled.Paragraph>
+                    {game.platforms.join(", ")}
+                  </Styled.Paragraph>
+                </Styled.ParagraphPrimaryColor>
+                {game.summary && (
+                  <Styled.GameSummaryContainer>
+                    <Styled.GameSummaryText>{`"${game.summary}"`}</Styled.GameSummaryText>
+                  </Styled.GameSummaryContainer>
+                )}
+              </Styled.GameModalContentRow>
+              <Styled.GameModalContentRow>
+                <Styled.AddToCalendarButton
+                  onPress={() => addEvent(game)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Add to calendar"
+                  testID="add-to-calendar"
+                >
+                  <FontAwesome
+                    name="calendar-plus-o"
+                    size={120}
+                    color={theme.colors.primary}
+                  />
+                </Styled.AddToCalendarButton>
+              </Styled.GameModalContentRow>
+            </Styled.GameModalContentContainer>
+          </Styled.GameModalContainer>
+          <Styled.ModalCloseButton
+            onPress={onClose}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+            testID="close-game-modal"
+          >
+            <Ionicons name="close" size={24} color="white" />
+          </Styled.ModalCloseButton>
+        </Styled.GameModalFrame>
       )}
     </SlideUpModal>
   );

@@ -5,4 +5,5 @@ import { Game } from "../types/games";
 export interface GamesService {
   getGamesReleasingSoon(signal?: AbortSignal): Promise<Game[]>;
   searchUpcomingGames(searchPhrase: string, signal?: AbortSignal): Promise<Game[]>;
+  getGamesByIds(ids: number[], signal?: AbortSignal): Promise<Game[]>;
 }

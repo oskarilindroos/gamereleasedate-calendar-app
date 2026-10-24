@@ -110,6 +110,24 @@ export const GameModalContainer = styled.ScrollView`
   background-color: ${({ theme }) => theme.colors.background};
 `;
 
+// Wraps the scrolling content so the close button can float over it
+export const GameModalFrame = styled.View`
+  flex-shrink: 1;
+`;
+
+// Dark translucent circle so the icon stays visible on top of screenshots
+export const ModalCloseButton = styled.Pressable`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+`;
+
 export const GameModalContentContainer = styled.View`
   flex-direction: column;
 `;
@@ -148,4 +166,23 @@ export const Divider = styled.View`
 export const LoadingIcon = styled.ActivityIndicator`
   align-items: center;
   justify-content: center;
+`;
+
+export const CalendarEntryRow = styled.View`
+  flex-direction: row;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom-width: 2px;
+  border-bottom-color: ${({ theme }) => theme.colors.divider};
+`;
+
+export const CalendarEntryCover = styled.Image`
+  width: 60px;
+  height: 80px;
+  border-radius: ${({ theme }) => theme.borderRadius / 2}px;
+`;
+
+export const CalendarEntryInfo = styled.View`
+  flex: 1;
+  margin: 0 15px;
 `;

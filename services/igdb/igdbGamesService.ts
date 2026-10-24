@@ -2,7 +2,11 @@ import { IgdbGame } from "../../types/games";
 import { GamesService } from "../GamesService";
 import { DAY_IN_SECONDS, toUnixSeconds } from "../../utils/dates";
 import { mapIgdbGame } from "./mapGame";
-import { gamesReleasingBetweenQuery, searchUpcomingGamesQuery } from "./queries";
+import {
+  gamesByIdsQuery,
+  gamesReleasingBetweenQuery,
+  searchUpcomingGamesQuery,
+} from "./queries";
 import { TokenProvider } from "./twitchTokenProvider";
 
 export class ApiError extends Error {
@@ -83,6 +87,10 @@ export const createIgdbGamesService = ({
         searchUpcomingGamesQuery(searchPhrase, toUnixSeconds(now())),
         signal
       );
+    },
+    async getGamesByIds(ids, signal) {
+      if (ids.length === 0) return [];
+      return queryGames(gamesByIdsQuery(ids), signal);
     },
   };
 };
