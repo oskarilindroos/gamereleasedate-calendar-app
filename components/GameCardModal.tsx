@@ -30,8 +30,6 @@ export default function GameCardModal({
       onClose={onClose}
       onHidden={onHidden}
       style={{
-        borderWidth: 2,
-        borderColor: theme.colors.divider,
         width: "100%",
         maxWidth: 700,
         alignSelf: "center",
