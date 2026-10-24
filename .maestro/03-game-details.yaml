@@ -21,17 +21,7 @@ name: Shows game details and adds the release date to the calendar
 - extendedWaitUntil:
     visible: "Event (added to calendar|already exists)"
     timeout: 10000
-- runFlow:
-    when:
-      platform: iOS
-    commands:
-      - tapOn: "OK"
 - tapOn: "Add to calendar"
 - extendedWaitUntil:
     visible: "Event already exists"
     timeout: 10000
-- runFlow:
-    when:
-      platform: iOS
-    commands:
-      - tapOn: "OK"

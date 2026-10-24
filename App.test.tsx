@@ -2,6 +2,7 @@
 // and token provider, with the network replaced by the mock IGDB API.
 import * as Calendar from "expo-calendar";
 import { Alert } from "react-native";
+import { toast } from "sonner-native";
 import { act, fireEvent, screen, render, userEvent, waitFor } from "@testing-library/react-native";
 import App from "./App";
 import { navigationRef } from "./services/NavigationService";
@@ -12,6 +13,7 @@ import {
   MOCK_CLIENT_ID,
   MOCK_CLIENT_SECRET,
 } from "./mock-igdb/igdbMock.ts";
+import { createTestQueryClient } from "./test/queryClient";
 
 const NOW = new Date(2026, 9, 24, 12);
 
@@ -33,7 +35,9 @@ const createMockedGamesService = () => {
 };
 
 const renderApp = async () => {
-  await render(<App gamesService={createMockedGamesService()} />);
+  await render(
+    <App gamesService={createMockedGamesService()} queryClient={createTestQueryClient()} />
+  );
   await screen.findByText("Stellar Frontier");
 };
 
@@ -64,7 +68,7 @@ describe("App", () => {
       await loaded;
       return getGamesReleasingSoon(...args);
     };
-    await render(<App gamesService={service} />);
+    await render(<App gamesService={service} queryClient={createTestQueryClient()} />);
 
     expect(await screen.findByLabelText("Loading games")).toBeOnTheScreen();
     expect(screen.getByText("Games releasing soon")).toBeOnTheScreen();
@@ -112,7 +116,6 @@ describe("App", () => {
   });
 
   it("shows game details and adds the release to the calendar", async () => {
-    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => {});
     const createEvent = jest.fn().mockResolvedValue({ id: "event" });
     jest.mocked(Calendar.requestCalendarPermissions).mockResolvedValue({
       status: "granted",
@@ -148,11 +151,13 @@ describe("App", () => {
       )
     );
     expect(createEvent.mock.calls[0][0]).not.toHaveProperty("allDay");
-    expect(alert).toHaveBeenCalledWith("Event added to calendar");
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith("Event added to calendar")
+    );
   });
 
   it("lists the games added to the calendar and removes them", async () => {
-    const alert = jest.spyOn(Alert, "alert").mockImplementation((title, _message, buttons) => {
+    jest.spyOn(Alert, "alert").mockImplementation((title, _message, buttons) => {
       // Confirm the removal
       if (title === "Remove from calendar?") buttons?.find(({ text }) => text === "Remove")?.onPress?.();
     });
@@ -193,7 +198,7 @@ describe("App", () => {
     await waitFor(() => expect(deleteEvent).toHaveBeenCalled());
     expect(Calendar.ExpoCalendarEvent.get).toHaveBeenCalledWith("event-1");
     expect(await screen.findByText(/No games added yet/)).toBeOnTheScreen();
-    expect(alert).toHaveBeenCalledWith("Removed from calendar");
+    expect(toast.success).toHaveBeenCalledWith("Removed from calendar");
   });
 
   it("closes the game details with the close button", async () => {

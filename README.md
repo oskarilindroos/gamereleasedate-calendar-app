@@ -5,12 +5,14 @@ Releases are added to a separate "Game Release Date Calendar" calendar as events
 release day, since that's usually when games unlock. The *Calendar* screen in the drawer lists the games you've
 added and lets you remove them.
 
-The game lists load 30 games at a time and fetch more as you scroll. Covers are cached with `expo-image`.
+The game lists load 30 games at a time and fetch more as you scroll (TanStack Query). Covers are cached with `expo-image`.
 
 # Technologies
 
 - React Native 0.88 + Expo SDK 58 (iOS and Android)
 - TypeScript, styled-components, React Navigation 7
+- TanStack Query (data loading, paging and caching)
+- expo-image, react-native-reanimated-carousel, react-native-zoom-toolkit, sonner-native (toasts)
 - Expo Calendar API
 - IGDB API (for searching games and release dates)
 - Jest + React Native Testing Library, Maestro (end-to-end)

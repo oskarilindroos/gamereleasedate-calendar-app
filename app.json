@@ -7,7 +7,8 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.misnu.GameReleaseCalendar"
+      "bundleIdentifier": "com.misnu.GameReleaseCalendar",
+      "appleTeamId": "NXMV4437C8"
     },
     "android": {
       "adaptiveIcon": {
@@ -45,7 +46,15 @@
       ],
       "expo-status-bar",
       "expo-asset",
-      "expo-image"
+      "expo-image",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "networkInspector": false
+          }
+        }
+      ]
     ]
   }
 }

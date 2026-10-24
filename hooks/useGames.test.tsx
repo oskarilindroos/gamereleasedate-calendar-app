@@ -4,6 +4,7 @@ import useGames from "./useGames";
 import { GamesServiceProvider } from "../context/GamesServiceContext";
 import { GamesPage, GamesService } from "../services/GamesService";
 import { makeGame } from "../test/fixtures";
+import { createQueryWrapper } from "../test/queryClient";
 
 const deferred = <T,>() => {
   let resolve!: (value: T) => void;
@@ -27,13 +28,17 @@ const createService = (): jest.Mocked<GamesService> => ({
   getGamesByIds: jest.fn().mockResolvedValue([]),
 });
 
-const renderUseGames = (service: GamesService, searchPhrase?: string) =>
-  renderHook(({ phrase }: { phrase?: string }) => useGames(phrase, PAGE_SIZE), {
+const renderUseGames = (service: GamesService, searchPhrase?: string) => {
+  const QueryWrapper = createQueryWrapper();
+  return renderHook(({ phrase }: { phrase?: string }) => useGames(phrase, PAGE_SIZE), {
     initialProps: { phrase: searchPhrase },
     wrapper: ({ children }: { children: ReactNode }) => (
-      <GamesServiceProvider service={service}>{children}</GamesServiceProvider>
+      <QueryWrapper>
+        <GamesServiceProvider service={service}>{children}</GamesServiceProvider>
+      </QueryWrapper>
     ),
   });
+};
 
 const ids = (games: { id: number }[]) => games.map(({ id }) => id);
 
@@ -106,11 +111,11 @@ describe("useGames", () => {
       result.current.loadMore();
       result.current.loadMore();
     });
-    expect(result.current.loadingMore).toBe(true);
+    await waitFor(() => expect(result.current.loadingMore).toBe(true));
     await act(async () => next.resolve(page([3])));
 
+    await waitFor(() => expect(ids(result.current.games)).toEqual([1, 2, 3]));
     expect(service.getGamesReleasingSoon).toHaveBeenCalledTimes(2);
-    expect(ids(result.current.games)).toEqual([1, 2, 3]);
   });
 
   it("skips games that were already on an earlier page", async () => {

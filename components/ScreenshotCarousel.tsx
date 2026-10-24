@@ -1,52 +1,28 @@
 import { useState } from "react";
-import {
-  FlatList,
-  Image,
-  LayoutChangeEvent,
-  Modal,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  Pressable,
-  StyleSheet,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { Modal, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
+import { Image } from "expo-image";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useSharedValue } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
+import { Carousel, Pagination } from "react-native-reanimated-carousel";
+import { fitContainer, Gallery, type VerticalPullOptions } from "react-native-zoom-toolkit";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "styled-components/native";
+import * as Styled from "./styled/styles";
 
 const IMAGE_HEIGHT = 400;
+// IGDB screenshot sizes are all cropped to 16:9 (https://api-docs.igdb.com/#images),
+// so the preview doesn't need to download an image to learn its size
+const SCREENSHOT_ASPECT_RATIO = 16 / 9;
+// Pulling the preview down this far closes it
+const CLOSE_PULL_DISTANCE = 120;
 
 interface CarouselProps {
   urls: string[];
 }
 
-const pageIndex = (
-  event: NativeSyntheticEvent<NativeScrollEvent>,
-  pageWidth: number
-) => Math.round(event.nativeEvent.contentOffset.x / pageWidth);
-
-function Indicators({ count, activeIndex }: { count: number; activeIndex: number }) {
-  const theme = useTheme();
-  return (
-    <View style={styles.indicators} pointerEvents="none">
-      {Array.from({ length: count }, (_, index) => (
-        <View
-          key={index}
-          style={[
-            index === activeIndex ? styles.activeIndicator : styles.inactiveIndicator,
-            {
-              backgroundColor:
-                index === activeIndex ? theme.colors.primary : theme.colors.secondary,
-            },
-          ]}
-        />
-      ))}
-    </View>
-  );
-}
-
-// Full screen image viewer with a blurred copy of the current image as background
+// Full screen, zoomable image viewer with a blurred copy of the current image as background
 function ScreenshotPreview({
   urls,
   initialIndex,
@@ -58,63 +34,59 @@ function ScreenshotPreview({
 }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
+  const window = useWindowDimensions();
   const [index, setIndex] = useState(initialIndex);
+  const imageSize = fitContainer(SCREENSHOT_ASPECT_RATIO, window);
+
+  // Runs on the UI thread on every frame of the pull
+  const closeOnPull = ({ translateY, released }: VerticalPullOptions) => {
+    "worklet";
+    if (released && translateY > CLOSE_PULL_DISTANCE) scheduleOnRN(onClose);
+  };
 
   return (
-    <Modal visible animationType="fade" onRequestClose={onClose} supportedOrientations={["portrait", "landscape"]}>
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.colors.background }]}>
-        <Image
-          source={{ uri: urls[index] }}
-          style={StyleSheet.absoluteFill}
-          blurRadius={100}
-        />
-        <FlatList
+    <Modal
+      visible
+      animationType="fade"
+      onRequestClose={onClose}
+      supportedOrientations={["portrait", "landscape"]}
+    >
+      {/* Modals are rendered outside the app's root view, so gestures need their own */}
+      <GestureHandlerRootView
+        style={[StyleSheet.absoluteFill, { backgroundColor: theme.colors.background }]}
+      >
+        <Image source={{ uri: urls[index] }} style={StyleSheet.absoluteFill} blurRadius={100} />
+        <Gallery
           data={urls}
           keyExtractor={(url) => url}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          initialScrollIndex={initialIndex}
-          getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
-          onMomentumScrollEnd={(event) => setIndex(pageIndex(event, width))}
-          renderItem={({ item }) => (
-            <View style={[styles.previewPage, { width }]}>
-              <Image
-                source={{ uri: item }}
-                style={{ width, height: IMAGE_HEIGHT }}
-                resizeMode="contain"
-              />
-            </View>
+          initialIndex={initialIndex}
+          onIndexChange={setIndex}
+          onVerticalPull={closeOnPull}
+          renderItem={(url) => (
+            <Image source={{ uri: url }} style={imageSize} contentFit="contain" />
           )}
         />
-        <Pressable
+        <Styled.ModalCloseButton
           onPress={onClose}
-          hitSlop={20}
-          style={[styles.closeButton, { top: insets.top + 5 }]}
+          hitSlop={10}
+          style={{ top: insets.top + 10 }}
           accessibilityRole="button"
           accessibilityLabel="Close preview"
         >
-          <Ionicons name="close" size={34} color={theme.colors.primary} />
-        </Pressable>
-      </View>
+          <Ionicons name="close" size={24} color="white" />
+        </Styled.ModalCloseButton>
+      </GestureHandlerRootView>
     </Modal>
   );
 }
 
 export default function ScreenshotCarousel({ urls }: CarouselProps) {
   const theme = useTheme();
-  // Measure the container: the carousel lives in a modal that's narrower than the screen
-  const [width, setWidth] = useState(0);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const progress = useSharedValue(0);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
-
-  const onLayout = (event: LayoutChangeEvent) =>
-    setWidth(event.nativeEvent.layout.width);
 
   return (
     <View
-      onLayout={onLayout}
       style={{
         height: IMAGE_HEIGHT,
         borderBottomWidth: 2,
@@ -122,31 +94,38 @@ export default function ScreenshotCarousel({ urls }: CarouselProps) {
       }}
       testID="screenshot-carousel"
     >
-      {width > 0 && (
-        <FlatList
-          data={urls}
-          keyExtractor={(url) => url}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
-          onMomentumScrollEnd={(event) => setActiveIndex(pageIndex(event, width))}
-          renderItem={({ item, index }) => (
-            <Pressable
-              onPress={() => setPreviewIndex(index)}
-              accessibilityRole="imagebutton"
-              accessibilityLabel={`Screenshot ${index + 1} of ${urls.length}`}
-            >
-              <Image
-                source={{ uri: item }}
-                style={{ width, height: IMAGE_HEIGHT }}
-                resizeMode="cover"
-              />
-            </Pressable>
-          )}
-        />
-      )}
-      <Indicators count={urls.length} activeIndex={activeIndex} />
+      <Carousel
+        data={urls}
+        keyExtractor={(url) => url}
+        style={styles.carousel}
+        progress={progress}
+        // Only take over clearly horizontal swipes so the details can still scroll vertically
+        onConfigurePanGesture={(gesture) => {
+          gesture.activeOffsetX([-10, 10]);
+        }}
+        renderItem={({ item, index }) => (
+          <Pressable
+            onPress={() => setPreviewIndex(index)}
+            style={styles.carousel}
+            accessibilityRole="imagebutton"
+            accessibilityLabel={`Screenshot ${index + 1} of ${urls.length}`}
+          >
+            <Image source={{ uri: item }} style={styles.carousel} contentFit="cover" />
+          </Pressable>
+        )}
+      />
+      <Pagination
+        count={urls.length}
+        progress={progress}
+        containerStyle={styles.pagination}
+        dotStyle={{
+          width: 10,
+          height: 10,
+          borderRadius: 5,
+          backgroundColor: theme.colors.secondary,
+        }}
+        activeDotStyle={{ width: 20, height: 5, backgroundColor: theme.colors.primary }}
+      />
       {previewIndex !== null && (
         <ScreenshotPreview
           urls={urls}
@@ -159,31 +138,14 @@ export default function ScreenshotCarousel({ urls }: CarouselProps) {
 }
 
 const styles = StyleSheet.create({
-  indicators: {
+  carousel: {
+    flex: 1,
+  },
+  pagination: {
     position: "absolute",
     bottom: 40,
     alignSelf: "center",
-    flexDirection: "row",
     alignItems: "center",
-  },
-  activeIndicator: {
-    height: 5,
-    width: 20,
-    borderRadius: 100,
-    margin: 5,
-  },
-  inactiveIndicator: {
-    height: 10,
-    width: 10,
-    borderRadius: 100,
-    margin: 5,
-  },
-  previewPage: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  closeButton: {
-    position: "absolute",
-    left: 5,
+    gap: 10,
   },
 });

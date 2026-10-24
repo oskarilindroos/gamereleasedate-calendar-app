@@ -49,3 +49,52 @@ jest.mock("expo-calendar", () => ({
   SourceType: { LOCAL: "local" },
   CalendarAccessLevel: { OWNER: "owner" },
 }));
+
+// Reanimated/Worklets need their native runtime, which doesn't exist in Jest. The
+// libraries built on them are replaced with plain stand-ins below; these cover the
+// few APIs the app itself uses.
+jest.mock("react-native-reanimated", () => ({
+  useSharedValue: (value: unknown) => ({ value }),
+}));
+jest.mock("react-native-worklets", () => ({
+  scheduleOnRN: (fn: (...args: unknown[]) => void, ...args: unknown[]) => fn(...args),
+}));
+
+// Renders every slide; swiping isn't simulated
+jest.mock("react-native-reanimated-carousel", () => {
+  const { View } = require("react-native");
+  return {
+    Carousel: ({ data, renderItem, testID }: any) => (
+      <View testID={testID}>
+        {data.map((item: unknown, index: number) => (
+          <View key={index}>{renderItem({ item, index })}</View>
+        ))}
+      </View>
+    ),
+    Pagination: () => null,
+  };
+});
+
+// Renders every image; zooming and swiping aren't simulated
+jest.mock("react-native-zoom-toolkit", () => {
+  const { View } = require("react-native");
+  return {
+    fitContainer: (aspectRatio: number, { width }: { width: number }) => ({
+      width,
+      height: width / aspectRatio,
+    }),
+    Gallery: ({ data, renderItem }: any) => (
+      <View testID="gallery">
+        {data.map((item: unknown, index: number) => (
+          <View key={index}>{renderItem(item, index)}</View>
+        ))}
+      </View>
+    ),
+  };
+});
+
+// Toasts are asserted through the mocked functions
+jest.mock("sonner-native", () => ({
+  toast: Object.assign(jest.fn(), { success: jest.fn(), error: jest.fn() }),
+  Toaster: () => null,
+}));

@@ -1,38 +1,65 @@
-import { renderHook } from "@testing-library/react-native";
+import { renderHook, waitFor } from "@testing-library/react-native";
+import { toast } from "sonner-native";
 import useCalendar from "./useCalendar";
 import { addGameToCalendar } from "../services/calendar/calendarService";
-import { notify } from "../services/notify";
+import { queryKeys } from "../services/query/queryClient";
 import { makeGame } from "../test/fixtures";
+import { createQueryWrapper, createTestQueryClient } from "../test/queryClient";
 
 jest.mock("../services/calendar/calendarService");
-jest.mock("../services/notify");
 
 const mockedAdd = jest.mocked(addGameToCalendar);
-const mockedNotify = jest.mocked(notify);
+const mockedToast = jest.mocked(toast);
+
+const renderUseCalendar = (client = createTestQueryClient()) =>
+  renderHook(() => useCalendar(), { wrapper: createQueryWrapper(client) });
 
 beforeEach(() => jest.clearAllMocks());
 
 describe("useCalendar", () => {
-  it.each([
-    ["added", "Event added to calendar"],
-    ["already-exists", "Event already exists"],
-    ["permission-denied", "Calendar permission is required to add events"],
-  ] as const)("notifies the user when the result is '%s'", async (result, message) => {
-    mockedAdd.mockResolvedValue(result);
-    const { result: hook } = await renderHook(() => useCalendar());
+  it("shows a success toast and refreshes the calendar list when the game was added", async () => {
+    mockedAdd.mockResolvedValue("added");
+    const client = createTestQueryClient();
+    const invalidate = jest.spyOn(client, "invalidateQueries");
+    const { result } = await renderUseCalendar(client);
 
-    await hook.current.addEvent(makeGame());
+    result.current.addEvent(makeGame());
 
-    expect(mockedNotify).toHaveBeenCalledWith(message);
+    await waitFor(() =>
+      expect(mockedToast.success).toHaveBeenCalledWith("Event added to calendar")
+    );
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.calendarEntries });
   });
 
-  it("notifies the user when adding fails", async () => {
+  it("tells the user when the event already exists", async () => {
+    mockedAdd.mockResolvedValue("already-exists");
+    const { result } = await renderUseCalendar();
+
+    result.current.addEvent(makeGame());
+
+    await waitFor(() => expect(mockedToast).toHaveBeenCalledWith("Event already exists"));
+  });
+
+  it("shows an error toast without calendar permission", async () => {
+    mockedAdd.mockResolvedValue("permission-denied");
+    const { result } = await renderUseCalendar();
+
+    result.current.addEvent(makeGame());
+
+    await waitFor(() =>
+      expect(mockedToast.error).toHaveBeenCalledWith(
+        "Calendar permission is required to add events"
+      )
+    );
+  });
+
+  it("shows an error toast when adding fails", async () => {
     jest.spyOn(console, "warn").mockImplementation(() => {});
     mockedAdd.mockRejectedValue(new Error("boom"));
-    const { result } = await renderHook(() => useCalendar());
+    const { result } = await renderUseCalendar();
 
-    await result.current.addEvent(makeGame());
+    result.current.addEvent(makeGame());
 
-    expect(mockedNotify).toHaveBeenCalledWith("Error adding event");
+    await waitFor(() => expect(mockedToast.error).toHaveBeenCalledWith("Error adding event"));
   });
 });

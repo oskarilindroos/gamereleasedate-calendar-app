@@ -1,24 +1,28 @@
-import { useCallback } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner-native";
 import { addGameToCalendar } from "../services/calendar/calendarService";
-import { notify } from "../services/notify";
-import { Game } from "../types/games";
-
-const MESSAGES = {
-  added: "Event added to calendar",
-  "already-exists": "Event already exists",
-  "permission-denied": "Calendar permission is required to add events",
-} as const;
+import { queryKeys } from "../services/query/queryClient";
 
 const useCalendar = () => {
-  const addEvent = useCallback(async (game: Game) => {
-    try {
-      const result = await addGameToCalendar(game);
-      notify(MESSAGES[result]);
-    } catch (error) {
+  const queryClient = useQueryClient();
+
+  const { mutate: addEvent } = useMutation({
+    mutationFn: addGameToCalendar,
+    onSuccess: (result) => {
+      if (result === "added") {
+        toast.success("Event added to calendar");
+        queryClient.invalidateQueries({ queryKey: queryKeys.calendarEntries });
+      } else if (result === "already-exists") {
+        toast("Event already exists");
+      } else {
+        toast.error("Calendar permission is required to add events");
+      }
+    },
+    onError: (error) => {
       console.warn("Adding calendar event failed", error);
-      notify("Error adding event");
-    }
-  }, []);
+      toast.error("Error adding event");
+    },
+  });
 
   return { addEvent };
 };

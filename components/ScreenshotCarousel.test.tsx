@@ -1,16 +1,10 @@
-import { fireEvent, screen, userEvent } from "@testing-library/react-native";
+import { screen, userEvent } from "@testing-library/react-native";
 import ScreenshotCarousel from "./ScreenshotCarousel";
 import { renderWithTheme } from "../test/renderWithTheme";
 
 const urls = ["https://img/1.jpg", "https://img/2.jpg"];
 
-const renderCarousel = async () => {
-  await renderWithTheme(<ScreenshotCarousel urls={urls} />);
-  // Images are only rendered once the container width is known
-  await fireEvent(screen.getByTestId("screenshot-carousel"), "layout", {
-    nativeEvent: { layout: { width: 300, height: 400 } },
-  });
-};
+const renderCarousel = () => renderWithTheme(<ScreenshotCarousel urls={urls} />);
 
 describe("ScreenshotCarousel", () => {
   it("renders every screenshot", async () => {

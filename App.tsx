@@ -1,9 +1,11 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "sonner-native";
 import {
   NavigationContainer,
   DarkTheme,
@@ -20,6 +22,7 @@ import { GamesService } from "./services/GamesService";
 import { createIgdbGamesService } from "./services/igdb/igdbGamesService";
 import { createTwitchTokenProvider } from "./services/igdb/twitchTokenProvider";
 import { igdbConfig } from "./config/env";
+import { createQueryClient, useAppStateFocus } from "./services/query/queryClient";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -55,20 +58,24 @@ function ThemedApp() {
       <NavigationContainer ref={navigationRef} theme={navigationTheme}>
         <DrawerNavigator />
       </NavigationContainer>
+      <Toaster theme={isDarkTheme ? "dark" : "light"} position="bottom-center" />
     </>
   );
 }
 
 interface AppProps {
-  // Allows tests to inject their own games data source
+  // Allows tests to inject their own games data source and query settings
   gamesService?: GamesService;
+  queryClient?: QueryClient;
 }
 
-export default function App({ gamesService }: AppProps) {
+export default function App({ gamesService, queryClient }: AppProps) {
   const service = useMemo(
     () => gamesService ?? createDefaultGamesService(),
     [gamesService]
   );
+  const [defaultQueryClient] = useState(createQueryClient);
+  useAppStateFocus();
 
   const [fontsLoaded, fontError] = useFonts({
     MontserratRegular: require("./assets/fonts/Montserrat-Regular.ttf"),
@@ -91,9 +98,11 @@ export default function App({ gamesService }: AppProps) {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <ThemeModeProvider>
-          <GamesServiceProvider service={service}>
-            <ThemedApp />
-          </GamesServiceProvider>
+          <QueryClientProvider client={queryClient ?? defaultQueryClient}>
+            <GamesServiceProvider service={service}>
+              <ThemedApp />
+            </GamesServiceProvider>
+          </QueryClientProvider>
         </ThemeModeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
